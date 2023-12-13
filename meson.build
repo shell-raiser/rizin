@@ -195,6 +195,9 @@ else
   add_project_arguments(['-DUSE_SYS_CAPSTONE'], language: 'c')
 endif
 
+# Handle PCRE2
+pcre2_dep = dependency('libpcre2', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true)
+
 # handle magic library
 sys_magic_opt = get_option('use_sys_magic')
 sys_magic = disabler()
