@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: 2023 Rot127 <unisono@quyllur.org>
+// SPDX-License-Identifier: LGPL-3.0-only
+
 #ifndef RZ_REGEX_H
 #define RZ_REGEX_H
 
@@ -5,73 +8,60 @@
 #include <rz_list.h>
 #include <sys/types.h>
 
-typedef struct rz_regex_t {
-	int re_magic;
-	size_t re_nsub; /* number of parenthesized subexpressions */
-	const char *re_endp; /* end pointer for RZ_REGEX_PEND */
-	struct re_guts *re_g; /* none of your business :-) */
-	int re_flags;
-} RzRegex;
+#include <pcre2posix.h>
 
-typedef struct rz_regmatch_t {
-	st64 rm_so; /* start of match */
-	st64 rm_eo; /* end of match */
-} RzRegexMatch;
+// Maximum number of matches we count.
+#define RZ_REGEX_MAX_MATCH_COUNT 64
+#define RZ_REGEX_MATCH_FAIL      -1
+#define RZ_REGEX_MATCH_OVERFLOW  -2
 
-/* regcomp() flags */
-#define RZ_REGEX_BASIC    0000
-#define RZ_REGEX_EXTENDED 0001
-#define RZ_REGEX_ICASE    0002
-#define RZ_REGEX_NOSUB    0004
-#define RZ_REGEX_NEWLINE  0010
-#define RZ_REGEX_NOSPEC   0020
-#define RZ_REGEX_PEND     0040
-#define RZ_REGEX_DUMP     0200
+typedef int RzRegexFlags; ///< Regex flag bits.
+typedef regex_t RzRegex; ///< A compiler regex expression.
+typedef regmatch_t RzRegexMatch; ///< A match with its start and end offset.
+
+#define RZ_REGEX_ICASE    REG_ICASE /* Maps to PCRE2_CASELESS */
+#define RZ_REGEX_NEWLINE  REG_NEWLINE /* Maps to PCRE2_MULTILINE */
+#define RZ_REGEX_NOTBOL   REG_NOTBOL /* Maps to PCRE2_NOTBOL */
+#define RZ_REGEX_NOTEOL   REG_NOTEOL /* Maps to PCRE2_NOTEOL */
+#define RZ_REGEX_DOTALL   REG_DOTALL /* NOT defined by POSIX; maps to PCRE2_DOTALL */
+#define RZ_REGEX_NOSUB    REG_NOSUB /* Do not report what was matched */
+#define RZ_REGEX_UTF      REG_UTF /* NOT defined by POSIX; maps to PCRE2_UTF */
+#define RZ_REGEX_STARTEND REG_STARTEND /* BSD feature: pass subject string by so,eo */
+#define RZ_REGEX_NOTEMPTY REG_NOTEMPTY /* NOT defined by POSIX; maps to PCRE2_NOTEMPTY */
+#define RZ_REGEX_UNGREEDY REG_UNGREEDY /* NOT defined by POSIX; maps to PCRE2_UNGREEDY */
+#define RZ_REGEX_UCP      REG_UCP /* NOT defined by POSIX; maps to PCRE2_UCP */
+#define RZ_REGEX_PEND     REG_PEND /* GNU feature: pass end pattern by re_endp */
+#define RZ_REGEX_NOSPEC   REG_NOSPEC /* Maps to PCRE2_LITERAL */
+#define RZ_REGEX_EXTENDED REG_EXTENDED /* Unused by PCRE2 */
 
 /* regerror() flags */
-#define RZ_REGEX_ENOSYS   (-1) /* Reserved */
-#define RZ_REGEX_NOMATCH  1
-#define RZ_REGEX_BADPAT   2
-#define RZ_REGEX_ECOLLATE 3
-#define RZ_REGEX_ECTYPE   4
-#define RZ_REGEX_EESCAPE  5
-#define RZ_REGEX_ESUBREG  6
-#define RZ_REGEX_EBRACK   7
-#define RZ_REGEX_EPAREN   8
-#define RZ_REGEX_EBRACE   9
-#define RZ_REGEX_BADBR    10
-#define RZ_REGEX_ERANGE   11
-#define RZ_REGEX_ESPACE   12
-#define RZ_REGEX_BADRPT   13
-#define RZ_REGEX_EMPTY    14
-#define RZ_REGEX_ASSERT   15
-#define RZ_REGEX_INVARG   16
-#define RZ_REGEX_ILLSEQ   17
-#define RZ_REGEX_ATOI     255 /* convert name to number (!) */
-#define RZ_REGEX_ITOA     0400 /* convert number to name (!) */
+#define RZ_REGEX_ASSERT   REG_ASSERT /* internal error ? */
+#define RZ_REGEX_BADBR    REG_BADBR /* invalid repeat counts in {} */
+#define RZ_REGEX_BADPAT   REG_BADPAT /* pattern error */
+#define RZ_REGEX_BADRPT   REG_BADRPT /* ? * + invalid */
+#define RZ_REGEX_EBRACE   REG_EBRACE /* unbalanced {} */
+#define RZ_REGEX_EBRACK   REG_EBRACK /* unbalanced [] */
+#define RZ_REGEX_ECOLLATE REG_ECOLLATE /* collation error - not relevant */
+#define RZ_REGEX_ECTYPE   REG_ECTYPE /* bad class */
+#define RZ_REGEX_EESCAPE  REG_EESCAPE /* bad escape sequence */
+#define RZ_REGEX_EMPTY    REG_EMPTY /* empty expression */
+#define RZ_REGEX_EPAREN   REG_EPAREN /* unbalanced () */
+#define RZ_REGEX_ERANGE   REG_ERANGE /* bad range inside [] */
+#define RZ_REGEX_ESIZE    REG_ESIZE /* expression too big */
+#define RZ_REGEX_ESPACE   REG_ESPACE /* failed to get memory */
+#define RZ_REGEX_ESUBREG  REG_ESUBREG /* bad back reference */
+#define RZ_REGEX_INVARG   REG_INVARG /* bad argument */
+#define RZ_REGEX_NOMATCH  REG_NOMATCH /* match failed */
 
-/* regexec() flags */
-#define RZ_REGEX_NOTBOL   00001
-#define RZ_REGEX_NOTEOL   00002
-#define RZ_REGEX_STARTEND 00004
-#define RZ_REGEX_TRACE    00400 /* tracing of execution */
-#define RZ_REGEX_LARGE    01000 /* force large representation */
-#define RZ_REGEX_BACKR    02000 /* force use of backref code */
-
-RZ_API RzRegex *rz_regex_new(const char *pattern, const char *cflags);
-RZ_API int rz_regex_match(const char *pattern, const char *flags, const char *text);
-RZ_API char *rz_regex_match_extract(RZ_NONNULL const char *str, RZ_NONNULL RzRegexMatch *match);
-RZ_API RzList /*<char *>*/ *rz_regex_get_match_list(const char *pattern, const char *flags, const char *text);
-RZ_API int rz_regex_flags(const char *flags);
-RZ_API int rz_regex_comp(RzRegex *, const char *, int);
-RZ_API size_t rz_regex_error(int, const RzRegex *, char *, size_t);
-/*
- * gcc under c99 mode won't compile "[]" by itself.  As a workaround,
- * a dummy argument name is added.
- */
-RZ_API bool rz_regex_check(const RzRegex *rr, const char *str);
 RZ_API int rz_regex_exec(const RzRegex *preg, const char *string, size_t nmatch, RzRegexMatch __pmatch[], int eflags);
 RZ_API void rz_regex_free(RzRegex *);
+RZ_API int rz_regex_comp(RzRegex *, const char *, int);
+RZ_API size_t rz_regex_error(int, const RzRegex *, char *, size_t);
+
+// Non native helper functions for our convenience.
+RZ_API RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags);
 RZ_API void rz_regex_fini(RzRegex *);
+RZ_API int rz_regex_match(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags eflags);
+RZ_API const char *rz_regex_match_extract(RZ_NONNULL const char *text, RZ_NONNULL RzRegexMatch *match);
 
 #endif /* !_REGEX_H_ */
