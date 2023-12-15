@@ -50,11 +50,11 @@ RZ_API void rz_regex_free(RZ_OWN RzRegex *regex) {
 	pcre2_code_free(regex);
 }
 
-RZ_API RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context) {
+RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context) {
 	return pcre2_match_data_create_from_pattern(regex, context);
 }
 
-RZ_API void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
+void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
 	pcre2_match_data_free(match_data);
 }
 
