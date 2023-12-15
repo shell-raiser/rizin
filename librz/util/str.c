@@ -8,6 +8,7 @@
 #include "rz_cons.h"
 #include "rz_bin.h"
 #include "rz_util/rz_assert.h"
+#include <rz_vector.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -3409,17 +3410,20 @@ static RzList /*<char *>*/ *str_split_list_common(char *str, const char *c, int 
 static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_BORROW RzRegex *r, int n, bool trim, bool dup) {
 	rz_return_val_if_fail(str && r, NULL);
 	RzList *lst = rz_list_newf(dup ? free : NULL);
-	RzRegexMatch m[1];
 	char *aux;
 	int i = 0;
 	int s = 0, e = 0;
 	int j = 0;
-	while (rz_regex_exec(r, str + j, 1, m, 0) == 0) {
+	void **it;
+	RzPVector *matches = rz_regex_match_all(r, str, 0, 0);
+	rz_pvector_foreach (matches, it) {
+		RzVector *m = (RzVector *)*it;
+		RzRegexMatch *group0 = rz_vector_head(m);
 		if (n == i && n > 0) {
 			break;
 		}
-		s = m[0].rm_so; // Match start (inclusive) in string str + j
-		e = m[0].rm_eo; // Match end (exclusive) in string str + j
+		s = group0->start; // Match start (inclusive) in string str + j
+		e = group0->start + group0->len; // Match end (exclusive) in string str + j
 		if (dup) {
 			aux = rz_str_ndup(str + j, s);
 		} else {
@@ -3434,6 +3438,7 @@ static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_
 		j += e;
 		++i;
 	}
+	rz_pvector_free(matches);
 	if (*(str + j) == 0 || (n == i && n > 0) || rz_list_length(lst) == 0) {
 		// No token left.
 		return lst;
@@ -3483,7 +3488,7 @@ RZ_API RzList /*<char *>*/ *rz_str_split_list(char *str, const char *c, int n) {
  */
 RZ_API RZ_OWN RzList /*<char *>*/ *rz_str_split_list_regex(RZ_NONNULL char *str, RZ_NONNULL const char *r, int n) {
 	rz_return_val_if_fail(str && r, NULL);
-	RzRegex *regex = rz_regex_new(r, "e");
+	RzRegex *regex = rz_regex_new(r, RZ_REGEX_EXTENDED);
 	RzList *res = str_split_list_common_regex(str, regex, n, false, false);
 	rz_regex_free(regex);
 	return res;
@@ -3545,7 +3550,7 @@ RZ_API RzList /*<char *>*/ *rz_str_split_duplist_n(const char *_str, const char 
 RZ_API RZ_OWN RzList /*<char *>*/ *rz_str_split_duplist_n_regex(RZ_NONNULL const char *_str, RZ_NONNULL const char *r, int n, bool trim) {
 	rz_return_val_if_fail(_str && r, NULL);
 	char *str = strdup(_str);
-	RzRegex *regex = rz_regex_new(r, "e");
+	RzRegex *regex = rz_regex_new(r, RZ_REGEX_EXTENDED);
 	RzList *res = str_split_list_common_regex(str, regex, n, trim, true);
 	free(str);
 	rz_regex_free(regex);
