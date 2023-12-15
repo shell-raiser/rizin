@@ -196,7 +196,7 @@ else
 endif
 
 # Handle PCRE2
-pcre2_dep = dependency('libpcre2', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true)
+pcre2_dep = dependency('libpcre2-32', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true, static: is_static_build)
 
 # handle magic library
 sys_magic_opt = get_option('use_sys_magic')
@@ -752,6 +752,7 @@ summary({
   'Swift demangler': get_option('use_swift_demangler'),
   'Debugger enabled': has_debugger,
   'Capstone version': capstone_dep.version(),
+  'PCRE2 version': pcre2_dep.version(),
   'System magic library': sys_magic.found() and sys_magic.type_name() != 'internal',
   'System xxhash library': xxhash_dep.found() and xxhash_dep.type_name() != 'internal',
   'System libmspack library': libmspack_dep.found() and libmspack_dep.type_name() != 'internal',

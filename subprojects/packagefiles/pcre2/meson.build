@@ -48,7 +48,7 @@ pcre2_includes = [
   'src/'
 ]
 
-libpcre2_c_args = ['-DHAVE_MEMMOVE', '-DSTDC_HEADERS', '-DSUPPORT_PCRE2_8', '-DSUPPORT_UNICODE', '-DHAVE_CONFIG_H', '-DPCRE2_CODE_UNIT_WIDTH=32']
+libpcre2_c_args = ['-DHAVE_MEMMOVE', '-DSTDC_HEADERS', '-DSUPPORT_PCRE2_8', '-DSUPPORT_UNICODE', '-DHAVE_CONFIG_H']
 
 libpcre2 = library('pcre2', pcre2_files,
   c_args: libpcre2_c_args,
