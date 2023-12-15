@@ -17,20 +17,19 @@
  *
  * \param pattern The regex pattern string.
  * \param cflags The compilation flags or zero for default.
- * \param context The context for compilation. Can be NULL for default context.
  *
  * \return The compiled regex or NULL in case of failure.
  */
-RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RZ_NULLABLE RzRegexCompContext *context) {
+RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
 	RzRegexStatus err_num;
 	RzRegexSize err_off;
 	RzRegex *regex = pcre2_compile(
 		(PCRE2_SPTR)pattern,
 		PCRE2_ZERO_TERMINATED,
-		cflags,
+		cflags | PCRE2_UTF,
 		&err_num,
 		&err_off,
-		context);
+		NULL);
 	if (!regex) {
 		PCRE2_UCHAR buffer[256];
 		pcre2_get_error_message(err_num, buffer, sizeof(buffer));
@@ -113,23 +112,15 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
-	RzRegexFlags options,
-	RZ_NULLABLE RzRegexContexts *ctxs) {
-	RzRegexMatchContext *mctx = NULL;
-	RzRegexGeneralContext *gctx = NULL;
-	if (ctxs) {
-		mctx = ctxs->match;
-		gctx = ctxs->general;
-	}
+	RzRegexFlags options) {
 
 	RzVector *matches = rz_vector_new(sizeof(RzRegexMatch), NULL, NULL);
-	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, gctx);
-	RzRegexStatus rc = rz_regex_match(regex, text, text_offset, options, mdata, mctx);
+	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
+	RzRegexStatus rc = rz_regex_match(regex, text, text_offset, options, mdata, NULL);
 
 	if (rc == PCRE2_ERROR_NOMATCH) {
 		// Nothing matched return empty vector.
-		rz_regex_match_data_free(mdata);
-		return matches;
+		goto fini;
 	}
 
 	if (rc < 0) {
@@ -137,7 +128,7 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 		PCRE2_UCHAR buffer[256];
 		pcre2_get_error_message(rc, buffer, sizeof(buffer));
 		RZ_LOG_WARN("Regex matching failed: %s\n", buffer);
-		goto error;
+		goto fini;
 	}
 
 	// Add groups to vector
@@ -161,7 +152,7 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 			// This happens for \K lookaround. We fail if used.
 			// See pcre2demo.c for details.
 			RZ_LOG_ERROR("Usage of \\K to set start of the pattern later than the end, is not implemented.\n");
-			goto error;
+			goto fini;
 		}
 
 		// Offset and length of match
@@ -184,13 +175,9 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 		rz_vector_push(matches, match);
 	}
 
+fini:
 	rz_regex_match_data_free(mdata);
 	return matches;
-
-error:
-	rz_regex_match_data_free(mdata);
-	rz_vector_free(matches);
-	return NULL;
 }
 
 /**
@@ -200,18 +187,17 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
-	RzRegexFlags options,
-	RZ_NULLABLE RzRegexContexts *ctxs) {
+	RzRegexFlags options) {
 	rz_return_val_if_fail(regex && text, NULL);
 
 	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
-	RzVector *matches = rz_regex_match_first(regex, text, text_offset, options, ctxs);
+	RzVector *matches = rz_regex_match_first(regex, text, text_offset, options);
 	while (matches && rz_vector_len(matches) > 0) {
 		rz_pvector_push(all_matches, matches);
 		RzRegexMatch *m = rz_vector_head(matches);
 		// Search again after the last match.
 		text_offset = m->start + m->len;
-		matches = rz_regex_match_first(regex, text, text_offset, options, ctxs);
+		matches = rz_regex_match_first(regex, text, text_offset, options);
 	}
 
 	// Free last vector without matches.

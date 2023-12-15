@@ -50,7 +50,7 @@ typedef struct {
 RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context);
 void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data);
 
-RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RZ_NULLABLE RzRegexCompContext *context);
+RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags);
 RZ_API void rz_regex_free(RzRegex *regex);
 RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzRegexSize errbuf_size);
 RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);
@@ -58,13 +58,11 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
-	RzRegexFlags options,
-	RZ_NULLABLE RzRegexContexts *ctxs);
+	RzRegexFlags options);
 RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
-	RzRegexFlags options,
-	RZ_NULLABLE RzRegexContexts *ctxs);
+	RzRegexFlags options);
 
 #endif /* !_REGEX_H_ */
