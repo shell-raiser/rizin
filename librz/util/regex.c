@@ -109,7 +109,7 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
 	return NULL;
 }
 
-RZ_API RZ_OWN RzVector /*<RzMatch>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
@@ -196,7 +196,7 @@ error:
 /**
  * \brief Finds all matches in a text and returns them as vector.
  */
-RZ_API RZ_OWN RzPVector /*<RzVector>*/ *rz_regex_match_all(
+RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
