@@ -49,7 +49,7 @@ typedef struct {
 
 RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RZ_NULLABLE RzRegexCompContext *context);
 RZ_API RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context);
-RZ_API void rz_regex_fini(RzRegex *);
+RZ_API void rz_regex_free(RzRegex *regex);
 RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzRegexSize errbuf_size);
 RZ_API void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data);
 RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);

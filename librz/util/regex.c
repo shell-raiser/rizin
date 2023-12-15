@@ -46,7 +46,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RZ
  *
  * \param regex The RzRegex to free.
  */
-RZ_API void rz_regex_fini(RZ_OWN RzRegex *regex) {
+RZ_API void rz_regex_free(RZ_OWN RzRegex *regex) {
 	pcre2_code_free(regex);
 }
 
