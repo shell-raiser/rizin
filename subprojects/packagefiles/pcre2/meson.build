@@ -14,6 +14,17 @@ config_h = configure_file(input : 'src/config.h.generic',
   output : 'config.h',
   configuration : conf_data)
 
+libpcre2_c_args = [
+  '-DHAVE_CONFIG_H', # Default values from config.h
+  '-DPCRE2_CODE_UNIT_WIDTH=8',
+  '-DHAVE_MEMMOVE',
+  '-DSUPPORT_JIT',
+  '-DSUPPORT_PCRE2_8',
+  '-DSUPPORT_UNICODE',
+  '-DSUPPORT_VALGRIND',
+  '-fvisibility=default',
+]
+
 pcre2_files = [
   'src/pcre2_auto_possess.c',
   pcre2_chartables,
@@ -47,8 +58,6 @@ pcre2_files = [
 pcre2_includes = [
   'src/'
 ]
-
-libpcre2_c_args = ['-DHAVE_MEMMOVE', '-DSTDC_HEADERS', '-DSUPPORT_PCRE2_8', '-DSUPPORT_UNICODE', '-DHAVE_CONFIG_H']
 
 libpcre2 = library('pcre2', pcre2_files,
   c_args: libpcre2_c_args,

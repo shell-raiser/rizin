@@ -196,7 +196,7 @@ else
 endif
 
 # Handle PCRE2
-pcre2_dep = dependency('libpcre2-32', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true, static: is_static_build)
+pcre2_dep = dependency('libpcre2-8', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true, static: is_static_build)
 
 # handle magic library
 sys_magic_opt = get_option('use_sys_magic')
