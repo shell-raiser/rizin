@@ -57,12 +57,20 @@ void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
 	pcre2_match_data_free(match_data);
 }
 
-static RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
+RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags options,
-	RZ_NONNULL RZ_BORROW RzRegexMatchData *match_data,
-	RZ_NULLABLE RzRegexMatchContext *mcontext) {
-	return pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, options | PCRE2_MATCH_INVALID_UTF, match_data, mcontext);
+	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata) {
+	bool one_time_match = false;
+	if (!mdata) {
+		one_time_match = true;
+		mdata = pcre2_match_data_create_from_pattern(regex, NULL);
+	}
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, options | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
+	if (one_time_match) {
+		pcre2_match_data_free(mdata);
+	}
+	return rc;
 }
 
 /**
@@ -108,6 +116,10 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
 	return NULL;
 }
 
+/**
+ * \brief Finds the first match in a text and returns it as a vecor.
+ * First elemnt in vector is always the whole match, the following possible groups.
+ */
 RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
@@ -116,7 +128,7 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 
 	RzVector *matches = rz_vector_new(sizeof(RzRegexMatch), NULL, NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
-	RzRegexStatus rc = rz_regex_match(regex, text, text_offset, options, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, options | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
 
 	if (rc == PCRE2_ERROR_NOMATCH) {
 		// Nothing matched return empty vector.
@@ -182,6 +194,38 @@ fini:
 
 /**
  * \brief Finds all matches in a text and returns them as vector.
+ * The result is a flat vector of matches. A single match with multiple
+ * groups is simply appeneded to the resulting vector.
+ */
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
+	const RzRegex *regex,
+	RZ_NONNULL const char *text,
+	RzRegexSize text_offset,
+	RzRegexFlags options) {
+	rz_return_val_if_fail(regex && text, NULL);
+
+	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
+	RzVector *matches = rz_regex_match_first(regex, text, text_offset, options);
+	while (matches && rz_vector_len(matches) > 0) {
+		for (size_t i = 0; i < rz_vector_len(matches); ++i) {
+			RzRegexMatch *m = RZ_NEW0(RzRegexMatch);
+			rz_vector_pop(matches, m);
+			rz_pvector_push(all_matches, m);
+		}
+		rz_vector_free(matches);
+		RzRegexMatch *m = rz_vector_head(matches);
+		// Search again after the last match.
+		text_offset = m->start + m->len;
+		matches = rz_regex_match_first(regex, text, text_offset, options);
+	}
+
+	// Free last vector without matches.
+	rz_vector_free(matches);
+	return all_matches;
+}
+
+/**
+ * \brief Finds all matches in a text and returns them as vector of vector matches.
  */
 RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	const RzRegex *regex,

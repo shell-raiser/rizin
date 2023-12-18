@@ -21,7 +21,9 @@
 
 #define RZ_REGEX_CASELESS  PCRE2_CASELESS
 #define RZ_REGEX_EXTENDED  PCRE2_EXTENDED
+#define RZ_REGEX_NOSUB     PCRE2_NOSUB
 #define RZ_REGEX_MULTILINE PCRE2_MULTILINE
+#define RZ_REGEX_NEWLINE   PCRE2_NEWLINE
 
 #define RZ_REGEX_UNSET PCRE2_UNSET
 
@@ -54,6 +56,15 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags);
 RZ_API void rz_regex_free(RzRegex *regex);
 RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzRegexSize errbuf_size);
 RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);
+RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
+	RzRegexSize text_offset,
+	RzRegexFlags options,
+	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata);
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
+	const RzRegex *regex,
+	RZ_NONNULL const char *text,
+	RzRegexSize text_offset,
+	RzRegexFlags options);
 RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
