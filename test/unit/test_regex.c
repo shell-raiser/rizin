@@ -5,20 +5,19 @@
 #include <rz_regex.h>
 #include "minunit.h"
 
-bool exec_regex(RzRegex *regex, const char *str, RzRegexMatch *out) {
-	RzRegexMatch match[2];
+bool exec_regex(RzRegex *regex, const char *str, RzRegexMatchData *out) {
+	RzRegexMatchData match[2];
 	mu_assert_true(rz_regex_exec(regex, str, 1, &match[0], 0) == 0, "Regex match failed");
-	mu_assert_true(rz_regex_exec(regex, str, 1, &match[1], RZ_REGEX_LARGE) == 0, "Regex match failed for large engine");
-	mu_assert_memeq((ut8 *)&match[0], (ut8 *)&match[1], sizeof(RzRegexMatch), "Results from large engine match does not equal small engine match");
+	mu_assert_memeq((ut8 *)&match[0], (ut8 *)&match[1], sizeof(RzRegexMatchData), "Results from large engine match does not equal small engine match");
 	*out = match[0];
 	return true;
 }
 
 bool test_rz_reg_exec(void) {
 	const char *p = "abc|123";
-	RzRegex *reg = rz_regex_new(p, "e");
+	RzRegex *reg = rz_regex_new(p, RZ_REGEX_EXTENDED);
 	mu_assert_notnull(reg, "Regex was NULL");
-	RzRegexMatch match;
+	RzRegexMatchData match;
 	mu_assert_true(exec_regex(reg, "abc", &match), "Regex match failed");
 	mu_assert_eq(match.rm_so, 0, "Start of match is not 0");
 	mu_assert_eq(match.rm_eo, 3, "Start of match is not 3");
@@ -39,7 +38,7 @@ bool test_rz_reg_exec(void) {
 	mu_assert_eq(match.rm_eo, 3, "Start of match is not 3");
 	rz_regex_free(reg);
 	const char *p_big = "\\d+(([abc]*d[efg])+|[123]4[567]+)*|[zyx]+(test)+[mnb]";
-	reg = rz_regex_new(p_big, "e");
+	reg = rz_regex_new(p_big, RZ_REGEX_EXTENDED);
 	mu_assert_true(exec_regex(reg, "z1abcde123z", &match), "Regex match failed");
 	mu_assert_eq(match.rm_so, 1, "Start of match is not 1");
 	mu_assert_eq(match.rm_eo, 7, "Start of match is not 7");
@@ -53,10 +52,10 @@ bool test_rz_reg_exec(void) {
 bool test_rz_regex_capture(void) {
 	char *str = "abcd PrefixHello42s xyz";
 
-	RzRegex *re = rz_regex_new("[a-zA-Z]*(H[a-z]+)([0-9]*)s", "e");
+	RzRegex *re = rz_regex_new("[a-zA-Z]*(H[a-z]+)([0-9]*)s", RZ_REGEX_EXTENDED);
 	mu_assert_notnull(re, "regex_new");
 
-	RzRegexMatch groups[4];
+	RzRegexMatchData groups[4];
 	int r = rz_regex_exec(re, str, RZ_ARRAY_SIZE(groups), groups, 0);
 	mu_assert_eq(r, 0, "regex_exec");
 
