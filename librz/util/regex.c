@@ -33,7 +33,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
 	if (!regex) {
 		PCRE2_UCHAR buffer[256];
 		pcre2_get_error_message(err_num, buffer, sizeof(buffer));
-		RZ_LOG_ERROR("Regex compilation failed at offset %" PFMTSZu ": %s\n", err_off,
+		RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
 			buffer);
 		return NULL;
 	}
