@@ -30,7 +30,7 @@ static RZ_OWN RzPVector /*<RzAsmTokenPattern *>*/ *get_token_patterns(HexState *
 	RzAsmTokenPattern *pat = RZ_NEW0(RzAsmTokenPattern);
 	pat->type = RZ_ASM_TOKEN_META;
 	pat->pattern = strdup(
-		"^[\\[\\?\\/\\|\\\\\\{]|┌|│|└|" // Packet prefix
+		"^[\\[\\?\\/\\|\\\\\\{┌│└]|" // Packet prefix
 		"(∎|[<\\}])[\\s:]endloop[01]{1,2}" // Endloop markers
 	);
 	rz_pvector_push(pvec, pat);
@@ -74,7 +74,7 @@ static RZ_OWN RzPVector /*<RzAsmTokenPattern *>*/ *get_token_patterns(HexState *
 	pat = RZ_NEW0(RzAsmTokenPattern);
 	pat->type = RZ_ASM_TOKEN_NUMBER;
 	pat->pattern = strdup(
-		"(\\d+)" // Decimal numbers
+		"\\d+" // Decimal numbers
 	);
 	rz_pvector_push(pvec, pat);
 
@@ -89,7 +89,7 @@ static RZ_OWN RzPVector /*<RzAsmTokenPattern *>*/ *get_token_patterns(HexState *
 	pat = RZ_NEW0(RzAsmTokenPattern);
 	pat->type = RZ_ASM_TOKEN_OPERATOR;
 	pat->pattern = strdup(
-		"\\+|=|!|-" // +,-,=,],[, ! (not the packet prefix)
+		"[\\+=!-]" // +,-,=,],[, ! (not the packet prefix)
 	);
 	rz_pvector_push(pvec, pat);
 

@@ -33,7 +33,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
 	RzRegex *regex = pcre2_compile(
 		(PCRE2_SPTR)pattern,
 		PCRE2_ZERO_TERMINATED,
-		cflags | PCRE2_UTF | PCRE2_UCP | PCRE2_MATCH_INVALID_UTF,
+		cflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF,
 		&err_num,
 		&err_off,
 		NULL);
