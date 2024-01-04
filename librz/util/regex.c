@@ -274,7 +274,7 @@ RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlag
 }
 
 /**
- * \brief Searches for a \p pattern in \p text and returns all matches as concatincated string.
+ * \brief Searches for a \p pattern in \p text and returns all matches as concatenated string.
  *
  */
 RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
