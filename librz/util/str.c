@@ -3417,15 +3417,15 @@ static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_
 	void **it;
 	RzPVector *matches = rz_regex_match_all(r, str, 0, RZ_REGEX_DEFAULT);
 	rz_pvector_foreach (matches, it) {
-		RzVector *m = (RzVector *)*it;
-		RzRegexMatch *group0 = rz_vector_head(m);
+		RzPVector *m = (RzPVector *)*it;
+		RzRegexMatch *group0 = rz_pvector_head(m);
 		if (n == i && n > 0) {
 			break;
 		}
 		s = group0->start; // Match start (inclusive) in string str + j
 		e = group0->start + group0->len; // Match end (exclusive) in string str + j
 		if (dup) {
-			aux = rz_str_ndup(str + j, s);
+			aux = rz_str_ndup(str + j, s - j);
 		} else {
 			// Overwrite split chararcters.
 			memset(str + j + s, 0, e - s);
@@ -3435,7 +3435,7 @@ static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_
 			rz_str_trim(aux);
 		}
 		rz_list_append(lst, aux);
-		j += e;
+		j = e;
 		++i;
 	}
 	rz_pvector_free(matches);
