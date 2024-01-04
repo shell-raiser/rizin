@@ -173,7 +173,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!var_re) {
 		return tstr;
 	}
-	RzPVector *matched_groups = rz_regex_match_all(var_re, tstr, 0, RZ_REGEX_EXTENDED | RZ_REGEX_CASELESS);
+	RzPVector *matched_groups = rz_regex_match_all(var_re, tstr, 0, RZ_REGEX_DEFAULT);
 	if (matched_groups || rz_pvector_empty(matched_groups)) {
 		rz_regex_free(var_re);
 		rz_pvector_free(matched_groups);

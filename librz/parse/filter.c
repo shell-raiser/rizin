@@ -183,7 +183,7 @@ static bool is_lea(const char *asm_str) {
 	if (!re) {
 		return false;
 	}
-	bool res = rz_regex_match(re, asm_str, 0, RZ_REGEX_EXTENDED | RZ_REGEX_CASELESS, NULL) != RZ_REGEX_ERROR_NOMATCH;
+	bool res = rz_regex_match(re, asm_str, 0, RZ_REGEX_DEFAULT, NULL) != RZ_REGEX_ERROR_NOMATCH;
 	rz_regex_free(re);
 	return res;
 }

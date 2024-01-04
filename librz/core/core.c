@@ -1382,7 +1382,7 @@ static bool find_e_opts(RzCore *core, RzLineCompletion *completion, RzLineBuffer
 	RzRegex *rx = rz_regex_new(pattern, RZ_REGEX_EXTENDED);
 	bool ret = false;
 
-	RzPVector *matches = rz_regex_match_all_not_grouped(rx, buf->data, 0, RZ_REGEX_EXTENDED);
+	RzPVector *matches = rz_regex_match_all_not_grouped(rx, buf->data, 0, RZ_REGEX_DEFAULT);
 	if (!matches || rz_pvector_empty(matches) || rz_pvector_len(matches) < 2) {
 		goto out;
 	}

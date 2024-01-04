@@ -8,7 +8,7 @@
 #include <rz_vector.h>
 
 bool exec_regex(RzRegex *regex, const char *str, RzRegexMatch **out) {
-	RzPVector *matches = rz_regex_match_all_not_grouped(regex, str, 0, RZ_REGEX_EXTENDED);
+	RzPVector *matches = rz_regex_match_all_not_grouped(regex, str, 0, RZ_REGEX_DEFAULT);
 	mu_assert_true(matches && !rz_pvector_empty(matches), "Regex match failed");
 	*out = (RzRegexMatch *)rz_pvector_at(matches, 0);
 	return true;
@@ -56,7 +56,7 @@ bool test_rz_regex_capture(void) {
 	RzRegex *re = rz_regex_new("[a-zA-Z]*(H[a-z]+)([0-9]*)s", RZ_REGEX_EXTENDED);
 	mu_assert_notnull(re, "regex_new");
 
-	RzPVector *matches = rz_regex_match_all_not_grouped(re, str, 0, RZ_REGEX_EXTENDED);
+	RzPVector *matches = rz_regex_match_all_not_grouped(re, str, 0, RZ_REGEX_DEFAULT);
 	mu_assert_true(matches && !rz_pvector_empty(matches) && (rz_pvector_len(matches) == 4), "Regex match failed");
 
 	RzRegexMatch *match = rz_pvector_at(matches, 0);

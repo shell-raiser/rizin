@@ -67,7 +67,7 @@ RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char 
 		one_time_match = true;
 		mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	}
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
 	if (one_time_match) {
 		pcre2_match_data_free(mdata);
 	}
@@ -126,10 +126,9 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags) {
-
 	RzPVector *matches = rz_pvector_new(NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
 
 	if (rc == PCRE2_ERROR_NOMATCH) {
 		// Nothing matched return empty vector.

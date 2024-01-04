@@ -127,7 +127,7 @@ RZ_API int rz_cons_less_str(const char *str, const char *exitkeys) {
 				if (rx) {
 					rz_regex_free(rx);
 				}
-				rx = rz_regex_new(sreg, RZ_REGEX_EXTENDED);
+				rx = rz_regex_new(sreg, RZ_REGEX_EXTENDED | RZ_REGEX_MULTILINE);
 			} else { /* we got an empty string */
 				from = pager_next_match(from, mla, lines_count);
 				break;
@@ -136,7 +136,7 @@ RZ_API int rz_cons_less_str(const char *str, const char *exitkeys) {
 				break;
 			}
 			/* find all occurrences */
-			RzPVector *matches = rz_regex_match_all_not_grouped(rx, str, 0, RZ_REGEX_MULTILINE);
+			RzPVector *matches = rz_regex_match_all_not_grouped(rx, str, 0, RZ_REGEX_DEFAULT);
 			if (rz_pvector_empty(matches)) {
 				rz_pvector_free(matches);
 				break;
