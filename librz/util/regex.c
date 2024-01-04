@@ -24,10 +24,16 @@
 RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
 	RzRegexStatus err_num;
 	RzRegexSize err_off;
+	bool supported = false;
+	pcre2_config(PCRE2_CONFIG_UNICODE, &supported);
+	if (!supported) {
+		RZ_LOG_ERROR("Unicode not supported by PCRE2 library.");
+		return NULL;
+	}
 	RzRegex *regex = pcre2_compile(
 		(PCRE2_SPTR)pattern,
 		PCRE2_ZERO_TERMINATED,
-		cflags | PCRE2_UTF,
+		cflags | PCRE2_UTF | PCRE2_UCP | PCRE2_MATCH_INVALID_UTF,
 		&err_num,
 		&err_off,
 		NULL);
@@ -67,7 +73,7 @@ RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char 
 		one_time_match = true;
 		mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	}
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
 	if (one_time_match) {
 		pcre2_match_data_free(mdata);
 	}
@@ -128,7 +134,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	RzRegexFlags mflags) {
 	RzPVector *matches = rz_pvector_new(NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
 
 	if (rc == PCRE2_ERROR_NOMATCH) {
 		// Nothing matched return empty vector.
@@ -171,6 +177,11 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 		RzRegexMatch *match = RZ_NEW0(RzRegexMatch);
 		match->start = ovector[2 * i];
 		match->len = ovector[2 * i + 1] - match->start;
+		if (match->len == 0) {
+			RZ_LOG_ERROR("Matched a string of length 0!\n");
+			rz_pvector_clear(matches);
+			goto fini;
+		}
 
 		// Match index with a name.
 		// Index is saved in the first two bytes of a table entry.
@@ -211,10 +222,10 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 			RzRegexMatch *m = rz_pvector_pop(matches);
 			rz_pvector_push(all_matches, m);
 		}
-		rz_pvector_free(matches);
 		RzRegexMatch *m = rz_pvector_head(matches);
 		// Search again after the last match.
 		text_offset = m->start + m->len;
+		rz_pvector_free(matches);
 		matches = rz_regex_match_first(regex, text, text_offset, mflags);
 	}
 
@@ -275,9 +286,9 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char 
 		goto fini;
 	}
 
-	void *m;
+	void **m;
 	rz_pvector_foreach (matches, m) {
-		RzRegexMatch *match = m;
+		RzRegexMatch *match = *m;
 		const char *t = text + match->start;
 		if (((int)match->len) < 0) {
 			goto fini;

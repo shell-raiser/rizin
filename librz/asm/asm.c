@@ -1585,13 +1585,13 @@ RZ_API RZ_OWN RzAsmTokenString *rz_asm_tokenize_asm_regex(RZ_BORROW RzStrBuf *as
 		}
 
 		// Search for token pattern.
-		RzPVector *match_groups = rz_regex_match_all(pattern->regex, asm_str, 0, RZ_REGEX_DEFAULT);
-		void *group;
-		rz_pvector_foreach (match_groups, group) {
-			if (rz_pvector_empty(group)) {
+		RzPVector *match_sets = rz_regex_match_all(pattern->regex, asm_str, 0, RZ_REGEX_DEFAULT);
+		void **grouped_match;
+		rz_pvector_foreach (match_sets, grouped_match) {
+			if (rz_pvector_empty(*grouped_match)) {
 				continue;
 			}
-			RzRegexMatch *match = rz_pvector_at(group, 0);
+			RzRegexMatch *match = rz_pvector_at(*grouped_match, 0);
 			st64 match_start = match->start; // Token start
 			st64 len = match->len; // Length of token
 			st64 tok_offset = match_start; // Token offset in str
@@ -1608,7 +1608,7 @@ RZ_API RZ_OWN RzAsmTokenString *rz_asm_tokenize_asm_regex(RZ_BORROW RzStrBuf *as
 			ut64 number = strtoull(asm_str + tok_offset, NULL, 0);
 			add_token(toks, tok_offset, len, pattern->type, number);
 		}
-		rz_pvector_free(match_groups);
+		rz_pvector_free(match_sets);
 	}
 
 	rz_vector_sort(toks->tokens, (RzVectorComparator)cmp_tokens, false, NULL);
