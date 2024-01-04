@@ -1416,19 +1416,19 @@ static int magiccheck(RzMagic *ms, struct rz_magic *m) {
 		if (!rx) {
 			return -1;
 		}
-		RzVector *matches = rz_regex_match_first(rx, (const char *)ms->search.s, 0, RZ_REGEX_DEFAULT);
+		RzPVector *matches = rz_regex_match_first(rx, (const char *)ms->search.s, 0, RZ_REGEX_DEFAULT);
 		rz_regex_free(rx);
 		if (!matches) {
 			return -1;
-		} else if (rz_vector_len(matches) == 0) {
+		} else if (rz_pvector_len(matches) == 0) {
 			v = 1;
 			break;
 		}
-		RzRegexMatch *m = rz_vector_head(matches);
+		RzRegexMatch *m = rz_pvector_head(matches);
 		ms->search.s += (int)m->start;
 		ms->search.offset += (size_t)m->start;
 		ms->search.rm_len = (size_t)m->len;
-		rz_vector_free(matches);
+		rz_pvector_free(matches);
 		v = 0;
 		break;
 	}

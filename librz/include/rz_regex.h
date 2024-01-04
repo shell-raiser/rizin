@@ -66,7 +66,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags options);
-RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,

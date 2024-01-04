@@ -117,16 +117,16 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
 }
 
 /**
- * \brief Finds the first match in a text and returns it as a vecor.
- * First elemnt in vector is always the whole match, the following possible groups.
+ * \brief Finds the first match in a text and returns it as a pvector.
+ * First element in the vector is always the whole match, the following possible groups.
  */
-RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags options) {
 
-	RzVector *matches = rz_vector_new(sizeof(RzRegexMatch), NULL, NULL);
+	RzPVector *matches = rz_pvector_new(NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, options | PCRE2_MATCH_INVALID_UTF, mdata, NULL);
 
@@ -178,13 +178,13 @@ RZ_API RZ_OWN RzVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 		if (n != i) {
 			// No name
 			match->mname_idx = RZ_REGEX_UNSET;
-			rz_vector_push(matches, match);
+			rz_pvector_push(matches, match);
 			continue;
 		}
 
 		match->mname_idx = n;
 		nametable_ptr += name_entry_size;
-		rz_vector_push(matches, match);
+		rz_pvector_push(matches, match);
 	}
 
 fini:
@@ -205,22 +205,21 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 	rz_return_val_if_fail(regex && text, NULL);
 
 	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
-	RzVector *matches = rz_regex_match_first(regex, text, text_offset, options);
-	while (matches && rz_vector_len(matches) > 0) {
-		for (size_t i = 0; i < rz_vector_len(matches); ++i) {
-			RzRegexMatch *m = RZ_NEW0(RzRegexMatch);
-			rz_vector_pop(matches, m);
+	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, options);
+	while (matches && rz_pvector_len(matches) > 0) {
+		for (size_t i = 0; i < rz_pvector_len(matches); ++i) {
+			RzRegexMatch *m = rz_pvector_pop(matches);
 			rz_pvector_push(all_matches, m);
 		}
-		rz_vector_free(matches);
-		RzRegexMatch *m = rz_vector_head(matches);
+		rz_pvector_free(matches);
+		RzRegexMatch *m = rz_pvector_head(matches);
 		// Search again after the last match.
 		text_offset = m->start + m->len;
 		matches = rz_regex_match_first(regex, text, text_offset, options);
 	}
 
 	// Free last vector without matches.
-	rz_vector_free(matches);
+	rz_pvector_free(matches);
 	return all_matches;
 }
 
@@ -235,16 +234,16 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	rz_return_val_if_fail(regex && text, NULL);
 
 	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
-	RzVector *matches = rz_regex_match_first(regex, text, text_offset, options);
-	while (matches && rz_vector_len(matches) > 0) {
+	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, options);
+	while (matches && rz_pvector_len(matches) > 0) {
 		rz_pvector_push(all_matches, matches);
-		RzRegexMatch *m = rz_vector_head(matches);
+		RzRegexMatch *m = rz_pvector_head(matches);
 		// Search again after the last match.
 		text_offset = m->start + m->len;
 		matches = rz_regex_match_first(regex, text, text_offset, options);
 	}
 
 	// Free last vector without matches.
-	rz_vector_free(matches);
+	rz_pvector_free(matches);
 	return all_matches;
 }
