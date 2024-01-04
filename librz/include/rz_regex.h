@@ -4,6 +4,7 @@
 #ifndef RZ_REGEX_H
 #define RZ_REGEX_H
 
+#include <rz_util/rz_strbuf.h>
 #include <rz_vector.h>
 #include <rz_types.h>
 #include <rz_list.h>
@@ -76,6 +77,7 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags options);
-RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags);
+RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags);
+RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator);
 
 #endif /* !_REGEX_H_ */

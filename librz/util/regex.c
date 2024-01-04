@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2023 Rot127 <unisono@quyllur.org>
 // SPDX-License-Identifier: LGPL-3.0-only
 
+#include <rz_util/rz_strbuf.h>
 #include <rz_vector.h>
 #include <rz_regex.h>
 #include <rz_types.h>
@@ -251,13 +252,43 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 /**
  * \brief Checks if \p pattern can be found in \p text.
  */
-RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags) {
+RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags) {
 	RzRegex *re = rz_regex_new(pattern, cflags);
 	if (!re) {
 		return false;
 	}
-	RzPVector *matches = rz_regex_match_first(re, text, 0, cflags);
+	RzPVector *matches = rz_regex_match_first(re, text, 0, mflags);
 	bool found = matches != NULL && !rz_pvector_empty(matches);
 	rz_pvector_free(matches);
 	return found;
+}
+
+/**
+ * \brief Searches for a \p pattern in \p text and returns all matches as concatincated string.
+ *
+ */
+RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
+	rz_return_val_if_fail(pattern && text && separator, NULL);
+	RzRegex *re = rz_regex_new(pattern, cflags);
+	RzStrBuf *sbuf = rz_strbuf_new("");
+	RzPVector *matches = rz_regex_match_all_not_grouped(re, text, 0, mflags);
+	if (!matches || !sbuf) {
+		goto fini;
+	}
+
+	void *m;
+	rz_pvector_foreach (matches, m) {
+		RzRegexMatch *match = m;
+		const char *t = text + match->start;
+		if (((int)match->len) < 0) {
+			goto fini;
+		}
+		if (!rz_strbuf_appendf(sbuf, "%-.*s%s", (int)match->len, t, separator)) {
+			goto fini;
+		}
+	}
+
+fini:
+	rz_pvector_free(matches);
+	return sbuf;
 }
