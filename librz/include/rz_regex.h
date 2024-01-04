@@ -76,5 +76,6 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	RZ_NONNULL const char *text,
 	RzRegexSize text_offset,
 	RzRegexFlags options);
+RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags);
 
 #endif /* !_REGEX_H_ */

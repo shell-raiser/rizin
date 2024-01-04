@@ -247,3 +247,17 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	rz_pvector_free(matches);
 	return all_matches;
 }
+
+/**
+ * \brief Checks if \p pattern can be found in \p text.
+ */
+RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags) {
+	RzRegex *re = rz_regex_new(pattern, cflags);
+	if (!re) {
+		return false;
+	}
+	RzPVector *matches = rz_regex_match_first(re, text, 0, cflags);
+	bool found = matches != NULL && !rz_pvector_empty(matches);
+	rz_pvector_free(matches);
+	return found;
+}
