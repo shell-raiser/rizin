@@ -196,7 +196,16 @@ else
 endif
 
 # Handle PCRE2
-pcre2_dep = dependency('libpcre2-8', fallback : ['pcre2', 'pcre2_dep'], version: '>=10.42', required: true, static: is_static_build)
+pcre2_dep_opt = get_option('use_sys_pcre2')
+pcre2_dep = disabler()
+if pcre2_dep_opt.enabled() or pcre2_dep_opt.auto()
+  pcre2_dep = dependency('libpcre2-8', required: false, static: is_static_build)
+  if not pcre2_dep.found()
+    pcre2_dep = cc.find_library('pcre2', required: true, static: is_static_build)
+  endif
+else
+  pcre2_dep = dependency('pcre2', 'pcre2_dep', version: '>=10.42', required: true, static: is_static_build)
+endif
 
 # handle magic library
 sys_magic_opt = get_option('use_sys_magic')
@@ -342,6 +351,8 @@ foreach it : ccs
   it_userconf.set10('IS_PORTABLE', get_option('portable'))
   it_userconf.set10('HAVE_LIB_MAGIC', sys_magic.found())
   it_userconf.set10('USE_LIB_MAGIC', sys_magic.found())
+  it_userconf.set10('HAVE_LIB_PCRE2', pcre2_dep.found())
+  it_userconf.set10('USE_LIB_PCRE2', pcre2_dep.found())
   it_userconf.set10('HAVE_LIB_XXHASH', xxhash_dep.found())
   it_userconf.set10('USE_LIB_XXHASH', xxhash_dep.found())
   it_userconf.set10('DEBUGGER', has_debugger)
@@ -754,6 +765,7 @@ summary({
   'Capstone version': capstone_dep.version(),
   'PCRE2 version': pcre2_dep.version(),
   'System magic library': sys_magic.found() and sys_magic.type_name() != 'internal',
+  'System pcre2 library': pcre2_dep.found() and pcre2_dep.type_name() != 'internal',
   'System xxhash library': xxhash_dep.found() and xxhash_dep.type_name() != 'internal',
   'System libmspack library': libmspack_dep.found() and libmspack_dep.type_name() != 'internal',
   'System openssl library': sys_openssl.found() and sys_openssl.type_name() != 'internal',
