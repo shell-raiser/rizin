@@ -199,12 +199,12 @@ endif
 pcre2_dep_opt = get_option('use_sys_pcre2')
 pcre2_dep = disabler()
 if pcre2_dep_opt.enabled() or pcre2_dep_opt.auto()
-  pcre2_dep = dependency('libpcre2-8', required: false, static: is_static_build)
+  pcre2_dep = dependency('libpcre2-8', required: false, static: true)
   if not pcre2_dep.found()
-    pcre2_dep = cc.find_library('pcre2', required: true, static: is_static_build)
+    pcre2_dep = cc.find_library('pcre2', required: true, static: true)
   endif
 else
-  pcre2_dep = dependency('pcre2', 'pcre2_dep', version: '>=10.42', required: true, static: is_static_build)
+  pcre2_dep = dependency('pcre2', 'pcre2_dep', version: '>=10.42', required: true, static: true)
 endif
 
 # handle magic library

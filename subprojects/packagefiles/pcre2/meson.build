@@ -59,9 +59,10 @@ pcre2_includes = [
   'src/sljit/',
 ]
 
-libpcre2 = library('pcre2', pcre2_files,
+libpcre2 = static_library('pcre2', pcre2_files,
   c_args: libpcre2_c_args,
   include_directories: pcre2_includes,
+  install: false,
 )
 
 pcre2_dep = declare_dependency(
