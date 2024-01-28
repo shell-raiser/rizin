@@ -3428,7 +3428,7 @@ static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_
 			aux = rz_str_ndup(str + j, s - j);
 		} else {
 			// Overwrite split chararcters.
-			memset(str + j + s, 0, e - s);
+			memset(str + s, 0, e - s);
 			aux = str + j;
 		}
 		if (trim) {
