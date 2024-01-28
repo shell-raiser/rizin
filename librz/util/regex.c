@@ -13,10 +13,10 @@
  */
 
 static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
-		PCRE2_UCHAR buffer[256];
-		pcre2_get_error_message(err_num, buffer, sizeof(buffer));
-		RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
-			buffer);
+	PCRE2_UCHAR buffer[256];
+	pcre2_get_error_message(err_num, buffer, sizeof(buffer));
+	RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
+		buffer);
 }
 
 /**
