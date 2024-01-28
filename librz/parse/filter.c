@@ -179,7 +179,7 @@ static bool is_lea(const char *asm_str) {
 	if (!colored) {
 		return strlen(asm_str) > 4 && rz_str_startswith_icase(asm_str, "lea") && asm_str[3] == ' ';
 	}
-	RzRegex *re = rz_regex_new("(^\x1b\\[\\d{1,3}mlea\x1b\\[0m.+)", RZ_REGEX_EXTENDED | RZ_REGEX_CASELESS);
+	RzRegex *re = rz_regex_new("(^\x1b\\[\\d{1,3}mlea\x1b\\[0m.+)", RZ_REGEX_EXTENDED | RZ_REGEX_CASELESS, 0);
 	if (!re) {
 		return false;
 	}

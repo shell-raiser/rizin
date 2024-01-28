@@ -56,7 +56,8 @@ pcre2_files = [
 ]
 
 pcre2_includes = [
-  'src/'
+  'src/',
+  'src/sljit/',
 ]
 
 libpcre2 = library('pcre2', pcre2_files,

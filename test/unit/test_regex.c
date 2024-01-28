@@ -16,7 +16,7 @@ bool exec_regex(RzRegex *regex, const char *str, RzRegexMatch **out) {
 
 bool test_rz_reg_exec(void) {
 	const char *p = "abc|123";
-	RzRegex *reg = rz_regex_new(p, RZ_REGEX_EXTENDED);
+	RzRegex *reg = rz_regex_new(p, RZ_REGEX_EXTENDED, 0);
 	mu_assert_notnull(reg, "Regex was NULL");
 	RzRegexMatch *match;
 	mu_assert_true(exec_regex(reg, "abc", &match), "Regex match failed");
@@ -39,7 +39,7 @@ bool test_rz_reg_exec(void) {
 	mu_assert_eq(match->len, 3, "Len of match is not 3");
 	rz_regex_free(reg);
 	const char *p_big = "\\d+(([abc]*d[efg])+|[123]4[567]+)*|[zyx]+(test)+[mnb]";
-	reg = rz_regex_new(p_big, RZ_REGEX_EXTENDED);
+	reg = rz_regex_new(p_big, RZ_REGEX_EXTENDED, 0);
 	mu_assert_true(exec_regex(reg, "z1abcde123z", &match), "Regex match failed");
 	mu_assert_eq(match->start, 1, "Start of match is not 1");
 	mu_assert_eq(match->len, 6, "Len of match is not 6");
@@ -53,7 +53,7 @@ bool test_rz_reg_exec(void) {
 bool test_rz_regex_capture(void) {
 	char *str = "abcd PrefixHello42s xyz";
 
-	RzRegex *re = rz_regex_new("[a-zA-Z]*(H[a-z]+)([0-9]*)s", RZ_REGEX_EXTENDED);
+	RzRegex *re = rz_regex_new("[a-zA-Z]*(H[a-z]+)([0-9]*)s", RZ_REGEX_EXTENDED, 0);
 	mu_assert_notnull(re, "regex_new");
 
 	RzPVector *matches = rz_regex_match_all_not_grouped(re, str, 0, RZ_REGEX_DEFAULT);

@@ -27,6 +27,12 @@
 #define RZ_REGEX_MULTILINE PCRE2_MULTILINE
 #define RZ_REGEX_NEWLINE   PCRE2_NEWLINE
 
+#define RZ_REGEX_JIT_PARTIAL_SOFT PCRE2_JIT_PARTIAL_SOFT
+#define RZ_REGEX_JIT_PARTIAL_HARD PCRE2_JIT_PARTIAL_HARD
+
+#define RZ_REGEX_PARTIAL_SOFT PCRE2_PARTIAL_SOFT
+#define RZ_REGEX_PARTIAL_HARD PCRE2_PARTIAL_HARD
+
 #define RZ_REGEX_UNSET PCRE2_UNSET
 
 typedef int RzRegexStatus; ///< An status number returned by the regex API.
@@ -54,7 +60,7 @@ typedef struct {
 RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context);
 void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data);
 
-RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags);
+RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags);
 RZ_API void rz_regex_free(RzRegex *regex);
 RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzRegexSize errbuf_size);
 RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);

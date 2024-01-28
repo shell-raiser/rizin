@@ -127,7 +127,7 @@ RZ_API int rz_cons_less_str(const char *str, const char *exitkeys) {
 				if (rx) {
 					rz_regex_free(rx);
 				}
-				rx = rz_regex_new(sreg, RZ_REGEX_EXTENDED | RZ_REGEX_MULTILINE);
+				rx = rz_regex_new(sreg, RZ_REGEX_EXTENDED | RZ_REGEX_MULTILINE, 0);
 			} else { /* we got an empty string */
 				from = pager_next_match(from, mla, lines_count);
 				break;

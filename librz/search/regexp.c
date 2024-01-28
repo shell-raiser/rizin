@@ -24,7 +24,7 @@ RZ_API int rz_search_regexp_update(RzSearch *s, ut64 from, const ut8 *buf, int l
 			reflags |= RZ_REGEX_CASELESS;
 		}
 
-		compiled = rz_regex_new((char *)kw->bin_keyword, reflags);
+		compiled = rz_regex_new((char *)kw->bin_keyword, reflags, 0);
 		if (!compiled) {
 			eprintf("Cannot compile '%s' regexp\n", kw->bin_keyword);
 			return -1;

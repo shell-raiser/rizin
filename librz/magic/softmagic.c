@@ -278,7 +278,7 @@ static int check_fmt(RzMagic *ms, struct rz_magic *m) {
 		return 0;
 	}
 
-	RzRegex *re = rz_regex_new("%[-0-9\\.]*s", RZ_REGEX_EXTENDED);
+	RzRegex *re = rz_regex_new("%[-0-9\\.]*s", RZ_REGEX_EXTENDED, 0);
 	if (!re) {
 		return -1;
 	}
@@ -1412,7 +1412,7 @@ static int magiccheck(RzMagic *ms, struct rz_magic *m) {
 		l = 0;
 		RzRegex *rx = rz_regex_new(m->value.s,
 			RZ_REGEX_EXTENDED |
-				((m->str_flags & STRING_IGNORE_CASE) ? RZ_REGEX_CASELESS : 0));
+				((m->str_flags & STRING_IGNORE_CASE) ? RZ_REGEX_CASELESS : 0), 0);
 		if (!rx) {
 			return -1;
 		}

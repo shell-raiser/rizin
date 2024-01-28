@@ -12,16 +12,26 @@
  * \file Defines the wrapper functions to PCRE2.
  */
 
+static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
+		PCRE2_UCHAR buffer[256];
+		pcre2_get_error_message(err_num, buffer, sizeof(buffer));
+		RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
+			buffer);
+}
+
 /**
  * \brief Compile a regex pattern to a RzRegex and return it.
  * In case of an error, an error message is printed and NULL is returned.
  *
  * \param pattern The regex pattern string.
  * \param cflags The compilation flags or zero for default.
+ * \param jflags The compilation flags for the JIT compiler.
+ * You can pass RZ_REGEX_JIT_PARTIAL_SOFT or RZ_REGEX_JIT_PARTIAL_HARD if you
+ * intend to use the pattern for partial matching. Otherwise set it to 0.
  *
  * \return The compiled regex or NULL in case of failure.
  */
-RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
+RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags) {
 	RzRegexStatus err_num;
 	RzRegexSize err_off;
 	bool supported = false;
@@ -38,11 +48,12 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags) {
 		&err_off,
 		NULL);
 	if (!regex) {
-		PCRE2_UCHAR buffer[256];
-		pcre2_get_error_message(err_num, buffer, sizeof(buffer));
-		RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
-			buffer);
+		print_pcre2_err(err_num, err_off);
 		return NULL;
+	}
+	RzRegexStatus jit_err = pcre2_jit_compile(regex, PCRE2_JIT_COMPLETE);
+	if (jit_err < 0) {
+		print_pcre2_err(jit_err, 0);
 	}
 	return regex;
 }
@@ -263,7 +274,7 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
  * \brief Checks if \p pattern can be found in \p text.
  */
 RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags) {
-	RzRegex *re = rz_regex_new(pattern, cflags);
+	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	if (!re) {
 		return false;
 	}
@@ -279,7 +290,7 @@ RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlag
  */
 RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
 	rz_return_val_if_fail(pattern && text && separator, NULL);
-	RzRegex *re = rz_regex_new(pattern, cflags);
+	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	RzStrBuf *sbuf = rz_strbuf_new("");
 	RzPVector *matches = rz_regex_match_all_not_grouped(re, text, 0, mflags);
 	if (!matches || !sbuf) {
