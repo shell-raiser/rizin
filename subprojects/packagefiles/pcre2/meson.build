@@ -21,7 +21,6 @@ libpcre2_c_args = [
   '-DSUPPORT_JIT',
   '-DSUPPORT_PCRE2_8',
   '-DSUPPORT_UNICODE',
-  '-DSUPPORT_VALGRIND',
   '-fvisibility=default',
 ]
 
