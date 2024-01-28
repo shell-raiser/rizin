@@ -291,7 +291,7 @@ static bool parse(RzParse *p, const char *data, RzStrBuf *sb) {
 	return true;
 }
 
-static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFunction *f, char *tstr, bool att) {
+static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFunction *f, RZ_OWN char *tstr, bool att) {
 	const ut64 addr = op->addr;
 
 	if (!p->var_expr_for_reg_access || !f) {
@@ -322,21 +322,19 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!var_re) {
 		return tstr;
 	}
-	RzPVector *matched_groups = rz_regex_match_all(var_re, tstr, 0, RZ_REGEX_DEFAULT);
-	if (matched_groups || rz_pvector_empty(matched_groups)) {
+	RzPVector *matches = rz_regex_match_first(var_re, tstr, 0, RZ_REGEX_DEFAULT);
+	if (!matches || rz_pvector_empty(matches)) {
 		rz_regex_free(var_re);
-		rz_pvector_free(matched_groups);
+		rz_pvector_free(matches);
 		return tstr;
 	}
 	rz_regex_free(var_re);
-	// We are only interested into the first group of matches
-	RzPVector *matches = rz_pvector_at(matched_groups, 0);
 
 	rz_return_val_if_fail(rz_pvector_len(matches) > group_idx_reg, tstr);
 	RzRegexMatch *match = rz_pvector_at(matches, group_idx_reg);
-	char *reg_str = tstr + match->start;
+	char *reg_str = rz_str_ndup(tstr + match->start, match->len);
 	if (!reg_str) {
-		rz_pvector_free(matched_groups);
+		rz_pvector_free(matches);
 		return tstr;
 	}
 
@@ -363,7 +361,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	char *varstr = p->var_expr_for_reg_access(f, addr, reg_str, reg_addend);
 	if (!varstr) {
 		free(reg_str);
-		rz_pvector_free(matched_groups);
+		rz_pvector_free(matches);
 		return tstr;
 	}
 
@@ -382,11 +380,11 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!p->localvar_only && att) {
 		rz_strbuf_appendf(&sb, "(%%%s)", reg_str);
 	}
-	rz_strbuf_append_n(&sb, tstr + match_full->len, tail_len);
+	rz_strbuf_append_n(&sb, tstr + match_full->start + match_full->len, tail_len);
 	free(reg_str);
 	free(varstr);
 	free(tstr);
-	rz_pvector_free(matched_groups);
+	rz_pvector_free(matches);
 	return rz_strbuf_drain_nofree(&sb);
 }
 

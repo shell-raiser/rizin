@@ -272,25 +272,19 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!var_re) {
 		return tstr;
 	}
-	RzPVector *matched_groups = rz_regex_match_all(var_re, tstr, 0, RZ_REGEX_DEFAULT);
-	if (matched_groups || rz_pvector_empty(matched_groups)) {
+	RzPVector *matches = rz_regex_match_first(var_re, tstr, 0, RZ_REGEX_DEFAULT);
+	if (!matches || rz_pvector_empty(matches)) {
 		rz_regex_free(var_re);
-		rz_pvector_free(matched_groups);
+		rz_pvector_free(matches);
 		return tstr;
 	}
 	rz_regex_free(var_re);
-	// We are only interested into the first group of matches
-	RzPVector *matches = rz_pvector_at(matched_groups, 0);
 
-	rz_return_val_if_fail(rz_pvector_len(matches) > 1, tstr);
 	RzRegexMatch *match = rz_pvector_at(matches, 1);
-	char *reg_str = tstr + match->start;
+	char *reg_str = rz_str_ndup(tstr + match->start, match->len);
 	if (!reg_str) {
+		rz_pvector_free(matches);
 		return tstr;
-	}
-	if (!rz_str_casecmp(reg_str, "x29")) {
-		free(reg_str);
-		reg_str = strdup("fp");
 	}
 
 	rz_return_val_if_fail(rz_pvector_len(matches) >= group_idx_addend, tstr);
@@ -310,7 +304,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	char *varstr = p->var_expr_for_reg_access(f, addr, reg_str, reg_addend);
 	if (!varstr) {
 		free(reg_str);
-		rz_pvector_free(matched_groups);
+		rz_pvector_free(matches);
 		return tstr;
 	}
 
@@ -332,11 +326,11 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (brackets) {
 		rz_strbuf_append(&sb, "]");
 	}
-	rz_strbuf_append_n(&sb, tstr + match_full->len, tail_len);
+	rz_strbuf_append_n(&sb, tstr + match_full->start + match_full->len, tail_len);
 	free(reg_str);
 	free(varstr);
 	free(tstr);
-	rz_pvector_free(matched_groups);
+	rz_pvector_free(matches);
 	return rz_strbuf_drain_nofree(&sb);
 }
 
