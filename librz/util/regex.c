@@ -232,23 +232,24 @@ fini:
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
-	RzRegexSize text_offset,
+	RzRegexSize next_text_offset,
 	RzRegexFlags mflags) {
 	rz_return_val_if_fail(regex && text, NULL);
 
-	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
-	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, mflags);
+	RzPVector *all_matches = rz_pvector_new(NULL);
+	RzPVector *matches = rz_regex_match_first(regex, text, next_text_offset, mflags);
 	while (matches && rz_pvector_len(matches) > 0) {
-		RzRegexMatch *m = NULL;
+		RzRegexMatch *whole_match = rz_pvector_head(matches);
+		next_text_offset = whole_match->start + whole_match->len;
+
 		size_t mlen = rz_pvector_len(matches);
 		for (size_t i = 0; i < mlen; ++i) {
-			m = rz_pvector_pop_front(matches);
+			RzRegexMatch *m = rz_pvector_pop_front(matches);
 			rz_pvector_push(all_matches, m);
 		}
-		// Search again after the whole first match.
-		text_offset = m->start + m->len;
 		rz_pvector_free(matches);
-		matches = rz_regex_match_first(regex, text, text_offset, mflags);
+		// Search again after the whole first match.
+		matches = rz_regex_match_first(regex, text, next_text_offset, mflags);
 	}
 
 	// Free last vector without matches.
