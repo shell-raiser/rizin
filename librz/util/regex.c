@@ -267,7 +267,7 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	RzRegexFlags mflags) {
 	rz_return_val_if_fail(regex && text, NULL);
 
-	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
+	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_pvector_free);
 	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, mflags);
 	while (matches && rz_pvector_len(matches) > 0) {
 		rz_pvector_push(all_matches, matches);
