@@ -188,11 +188,6 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 		RzRegexMatch *match = RZ_NEW0(RzRegexMatch);
 		match->start = ovector[2 * i];
 		match->len = ovector[2 * i + 1] - match->start;
-		if (match->len == 0) {
-			RZ_LOG_ERROR("Matched a string of length 0!\n");
-			rz_pvector_clear(matches);
-			goto fini;
-		}
 
 		// Match index with a name.
 		// Index is saved in the first two bytes of a table entry.
