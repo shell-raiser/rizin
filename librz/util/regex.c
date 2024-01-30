@@ -34,9 +34,9 @@ static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
 RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags) {
 	RzRegexStatus err_num;
 	RzRegexSize err_off;
-	bool supported = false;
+	ut32 supported = 0;
 	pcre2_config(PCRE2_CONFIG_UNICODE, &supported);
-	if (!supported) {
+	if (supported != 1) {
 		RZ_LOG_ERROR("Unicode not supported by PCRE2 library.");
 		return NULL;
 	}
