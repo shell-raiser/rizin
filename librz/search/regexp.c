@@ -37,10 +37,12 @@ RZ_API int rz_search_regexp_update(RzSearch *s, ut64 from, const ut8 *buf, int l
 			int t = rz_search_hit_new(s, kw, m->start);
 			if (t == 0) {
 				ret = -1;
+				rz_pvector_free(matches);
 				goto beach;
 			}
 			// Max hits reached
 			if (t > 1) {
+				rz_pvector_free(matches);
 				goto beach;
 			}
 		}
@@ -49,7 +51,6 @@ RZ_API int rz_search_regexp_update(RzSearch *s, ut64 from, const ut8 *buf, int l
 
 beach:
 	rz_regex_free(compiled);
-	rz_pvector_free(matches);
 	if (!ret) {
 		ret = s->nhits - old_nhits;
 	}
