@@ -82,7 +82,8 @@ bool test_rz_regex_capture(void) {
 	mu_assert_notnull(re, "regex_new");
 
 	RzPVector *matches = rz_regex_match_all_not_grouped(re, str, 0, RZ_REGEX_DEFAULT);
-	mu_assert_true(matches && !rz_pvector_empty(matches) && (rz_pvector_len(matches) == 4), "Regex match failed");
+	mu_assert_true(matches && !rz_pvector_empty(matches), "Regex match failed");
+	mu_assert_eq(rz_pvector_len(matches), 3, "Regex match count failed.");
 
 	RzRegexMatch *match = rz_pvector_at(matches, 0);
 	mu_assert_eq(match->start, 5, "full match start");
@@ -90,20 +91,17 @@ bool test_rz_regex_capture(void) {
 	char *s = rz_str_ndup(str + match->start, match->len);
 	mu_assert_streq_free(s, "PrefixHello42s", "full match extract");
 
+	match = rz_pvector_at(matches, 1);
 	mu_assert_eq(match->start, 11, "capture 1 start");
 	mu_assert_eq(match->len, 5, "capture 1 len");
 	s = rz_str_ndup(str + match->start, match->len);
 	mu_assert_streq_free(s, "Hello", "capture 1 extract");
 
+	match = rz_pvector_at(matches, 2);
 	mu_assert_eq(match->start, 16, "capture 2 start");
 	mu_assert_eq(match->len, 2, "capture 2 len");
 	s = rz_str_ndup(str + match->start, match->len);
 	mu_assert_streq_free(s, "42", "capture 2 extract");
-
-	mu_assert_eq(match->start, -1, "capture 3 start");
-	mu_assert_eq(match->len, -1, "capture 3 len");
-	s = rz_str_ndup(str + match->start, match->len);
-	mu_assert_null(s, "capture 3 extract");
 
 	rz_regex_free(re);
 	mu_end;

@@ -239,12 +239,13 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_vector_free);
 	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, mflags);
 	while (matches && rz_pvector_len(matches) > 0) {
-		for (size_t i = 0; i < rz_pvector_len(matches); ++i) {
-			RzRegexMatch *m = rz_pvector_pop(matches);
+		RzRegexMatch *m = NULL;
+		size_t mlen = rz_pvector_len(matches);
+		for (size_t i = 0; i < mlen; ++i) {
+			m = rz_pvector_pop_front(matches);
 			rz_pvector_push(all_matches, m);
 		}
-		RzRegexMatch *m = rz_pvector_head(matches);
-		// Search again after the last match.
+		// Search again after the whole first match.
 		text_offset = m->start + m->len;
 		rz_pvector_free(matches);
 		matches = rz_regex_match_first(regex, text, text_offset, mflags);
