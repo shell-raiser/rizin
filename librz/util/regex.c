@@ -40,8 +40,23 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, Rz
 		RZ_LOG_ERROR("Unicode not supported by PCRE2 library.");
 		return NULL;
 	}
+	const char *pat = NULL;
+	if ((cflags & RZ_REGEX_EXTENDED) || (cflags & RZ_REGEX_EXTENDED_MORE)) {
+		if (!strchr(pattern, ' ')) {
+			pat = pattern;
+		} else {
+			// In PCRE2 with the extended flag set, ascii space cahracters ' ' are skipped.
+			// We need to replace them with \s unfortunately to keep our API stable.
+			char *tmp_ptr = strdup(pattern);
+			pat = rz_str_replace(tmp_ptr, " ", "\\s", 0);
+			pat = tmp_ptr;
+		}
+	} else {
+		pat = pattern;
+	}
+
 	RzRegex *regex = pcre2_compile(
-		(PCRE2_SPTR)pattern,
+		(PCRE2_SPTR)pat,
 		PCRE2_ZERO_TERMINATED,
 		cflags | PCRE2_UTF | PCRE2_MATCH_INVALID_UTF,
 		&err_num,

@@ -9,9 +9,34 @@
 
 bool exec_regex(RzRegex *regex, const char *str, RzRegexMatch **out) {
 	RzPVector *matches = rz_regex_match_all_not_grouped(regex, str, 0, RZ_REGEX_DEFAULT);
-	mu_assert_true(matches && !rz_pvector_empty(matches), "Regex match failed");
+	if (!matches || rz_pvector_empty(matches)) {
+		return false;
+	}
 	*out = (RzRegexMatch *)rz_pvector_at(matches, 0);
 	return true;
+}
+
+bool test_rz_regex_all_match(void) {
+	RzRegex *reg = rz_regex_new("push", RZ_REGEX_EXTENDED, 0);
+	mu_assert_notnull(reg, "Regex was NULL");
+	RzRegexMatch *match;
+	mu_assert_true(exec_regex(reg, "push", &match), "Regex match failed");
+	mu_assert_eq(match->start, 0, "Start of match is not 0");
+	mu_assert_eq(match->len, 4, "Len of match is not 4");
+	rz_regex_free(reg);
+	mu_end;
+}
+
+bool test_rz_regex_extend_space(void) {
+	RzRegex *reg = rz_regex_new("push esi", RZ_REGEX_DEFAULT, 0);
+	mu_assert_notnull(reg, "Regex was NULL");
+	RzRegexMatch *match;
+	mu_assert_notnull(reg, "Regex was NULL");
+	mu_assert_true(exec_regex(reg, "push esi", &match), "Regex match failed. Was ' ' replaced with \\s in the pattern?");
+	mu_assert_eq(match->start, 0, "Start of match is not 0");
+	mu_assert_eq(match->len, 8, "Len of match is not 8");
+	rz_regex_free(reg);
+	mu_end;
 }
 
 bool test_rz_reg_exec(void) {
@@ -85,6 +110,8 @@ bool test_rz_regex_capture(void) {
 }
 
 int main() {
+	mu_run_test(test_rz_regex_all_match);
+	mu_run_test(test_rz_regex_extend_space);
 	mu_run_test(test_rz_reg_exec);
 	mu_run_test(test_rz_regex_capture);
 }
