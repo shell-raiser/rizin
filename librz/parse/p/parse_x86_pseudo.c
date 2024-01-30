@@ -367,7 +367,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 
 	// replace!
 	RzRegexMatch *match_full = rz_pvector_at(matches, 0);
-	size_t tail_len = strlen(tstr) - match_full->len;
+	size_t tail_len = strlen(tstr) - (match_full->start + match_full->len);
 	RzStrBuf sb;
 	rz_strbuf_init(&sb);
 	// reserve with a bit of padding for brackets, reg, whitespace, ...
