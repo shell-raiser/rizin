@@ -66,7 +66,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, Rz
 		print_pcre2_err(err_num, err_off);
 		return NULL;
 	}
-	RzRegexStatus jit_err = pcre2_jit_compile(regex, PCRE2_JIT_COMPLETE);
+	RzRegexStatus jit_err = pcre2_jit_compile(regex, jflags | PCRE2_JIT_COMPLETE);
 	if (jit_err < 0) {
 		print_pcre2_err(jit_err, 0);
 	}
