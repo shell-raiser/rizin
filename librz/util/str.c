@@ -1139,6 +1139,7 @@ RZ_API char *rz_str_appendch(char *x, char y) {
 
 /**
  * \brief In-place replacement of string \p key with \p val in \p str.
+ * In case of realloc \p str is freed and NULL is returned.
  *
  * \param str The string to replace the sub-string in.
  * \param key The sub-string to replace.
@@ -1180,7 +1181,7 @@ RZ_API RZ_OWN char *rz_str_replace(RZ_OWN char *str, const char *key, const char
 				if (!newstr) {
 					eprintf("realloc fail\n");
 					RZ_FREE(str);
-					break;
+					return NULL;
 				}
 				str = newstr;
 			}
