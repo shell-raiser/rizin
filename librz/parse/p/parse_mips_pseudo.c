@@ -156,7 +156,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!p->pseudo) {
 		// match e.g. -0x18(fp)
 		// capturing "-0x18", "0x", "fp"
-		re_str = "(-?(0x)?[0-9a-f]+)\\(([a-z][0-9a-z]))";
+		re_str = "(-?(0x)?[0-9a-f]+)\\(([a-z][0-9a-z])\\)";
 		group_idx_reg = 3;
 		group_idx_sign = -1;
 		group_idx_addend = 1;
