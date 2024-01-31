@@ -46,7 +46,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, Rz
 		if (!strchr(pattern, ' ')) {
 			pat = pattern;
 		} else {
-			// In PCRE2 with the extended flag set, ascii space cahracters ' ' are skipped.
+			// In PCRE2 with the extended flag set, ascii space characters ' ' are skipped.
 			// We need to replace them with \s unfortunately to keep our API stable.
 			fixed_pat = rz_str_replace(strdup(pattern), " ", "\\s", 1);
 			pat = fixed_pat;
