@@ -62,7 +62,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-          sudo apt-get --assume-yes install python3-wheel python3-setuptools
+          sudo apt-get --assume-yes install python3-wheel python3-setuptools libpcre2-dev
           sudo python3 -m pip install ninja
 
     - name: Checkout meson from ret2libc git

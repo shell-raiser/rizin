@@ -198,7 +198,11 @@ endif
 # Handle PCRE2
 pcre2_dep_opt = get_option('use_sys_pcre2')
 pcre2_dep = disabler()
-if pcre2_dep_opt.enabled() or pcre2_dep_opt.auto()
+if cc.get_id() == 'tcc'
+  # We require the system library for tcc, because tcc doesn't support
+  # the MSVC asm syntax PCRE2 uses.
+  pcre2_dep = dependency('libpcre2-8', required: true, static: true)
+elif pcre2_dep_opt.enabled() or pcre2_dep_opt.auto()
   pcre2_dep = dependency('libpcre2-8', required: false, static: true)
   if not pcre2_dep.found()
     pcre2_dep = cc.find_library('pcre2', required: true, static: true)
