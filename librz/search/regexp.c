@@ -18,19 +18,19 @@ RZ_API int rz_search_regexp_update(RzSearch *s, ut64 from, const ut8 *buf, int l
 	int ret = 0;
 
 	rz_list_foreach (s->kws, iter, kw) {
-		int reflags = RZ_REGEX_EXTENDED;
+		int cflags = RZ_REGEX_EXTENDED;
 
 		if (kw->icase) {
-			reflags |= RZ_REGEX_CASELESS;
+			cflags |= RZ_REGEX_CASELESS;
 		}
 
-		compiled = rz_regex_new((char *)kw->bin_keyword, reflags, 0);
+		compiled = rz_regex_new((char *)kw->bin_keyword, cflags, 0);
 		if (!compiled) {
 			eprintf("Cannot compile '%s' regexp\n", kw->bin_keyword);
 			return -1;
 		}
 
-		matches = rz_regex_match_all_not_grouped(compiled, (char *)buf, from, reflags);
+		matches = rz_regex_match_all_not_grouped(compiled, (char *)buf, from, RZ_REGEX_DEFAULT);
 		void **it;
 		rz_pvector_foreach (matches, it) {
 			RzRegexMatch *m = *it;
