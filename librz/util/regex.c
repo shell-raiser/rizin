@@ -315,6 +315,7 @@ RZ_API bool rz_regex_contains(const char *pattern, const char *text,
 
 /**
  * \brief Searches for a \p pattern in \p text and returns all matches as concatenated string.
+ * Sub-groups are ignored.
  *
  */
 RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text,
@@ -323,14 +324,15 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char 
 	rz_return_val_if_fail(pattern && text && separator, NULL);
 	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	RzStrBuf *sbuf = rz_strbuf_new("");
-	RzPVector *matches = rz_regex_match_all_not_grouped(re, text, text_size, 0, mflags);
+	RzPVector *matches = rz_regex_match_all(re, text, text_size, 0, mflags);
 	if (!matches || !sbuf) {
 		goto fini;
 	}
 
 	void **m;
 	rz_pvector_foreach (matches, m) {
-		RzRegexMatch *match = *m;
+		RzPVector *match_groups = *m;
+		RzRegexMatch *match = rz_pvector_head(match_groups);
 		const char *t = text + match->start;
 		if (((int)match->len) < 0) {
 			goto fini;
