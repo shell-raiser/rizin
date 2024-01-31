@@ -3415,7 +3415,7 @@ static RzList /*<char *>*/ *str_split_list_common_regex(RZ_BORROW char *str, RZ_
 	int s = 0, e = 0;
 	int j = 0;
 	void **it;
-	RzPVector *matches = rz_regex_match_all(r, str, 0, RZ_REGEX_DEFAULT);
+	RzPVector *matches = rz_regex_match_all(r, str, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 	rz_pvector_foreach (matches, it) {
 		RzPVector *m = (RzPVector *)*it;
 		RzRegexMatch *group0 = rz_pvector_head(m);

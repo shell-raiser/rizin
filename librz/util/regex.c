@@ -91,6 +91,7 @@ void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
 }
 
 RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
+	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags,
 	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata) {
@@ -99,7 +100,7 @@ RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char 
 		one_time_match = true;
 		mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	}
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, text_size, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
 	if (one_time_match) {
 		pcre2_match_data_free(mdata);
 	}
@@ -152,15 +153,24 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
 /**
  * \brief Finds the first match in a text and returns it as a pvector.
  * First element in the vector is always the whole match, the following possible groups.
+ *
+ * \param The regex pattern to match.
+ * \param text_size The length of the buffer pointed to by \p text.
+ * Can be set to RZ_REGEX_ZERO_TERMINATED if the buffer is a zero terminated string.
+ * \param text_offset The offset into \p text from where the search starts.
+ * \param mflags Match flags.
+ *
+ * \return The matches as pvector. NULL in case of failure. Empty for no matches or regex related errors.
  */
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
+	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags) {
 	RzPVector *matches = rz_pvector_new(NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
-	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, PCRE2_ZERO_TERMINATED, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
+	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, text_size, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
 
 	if (rc == PCRE2_ERROR_NOMATCH) {
 		// Nothing matched return empty vector.
@@ -232,12 +242,13 @@ fini:
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
+	RzRegexSize text_size,
 	RzRegexSize next_text_offset,
 	RzRegexFlags mflags) {
 	rz_return_val_if_fail(regex && text, NULL);
 
 	RzPVector *all_matches = rz_pvector_new(NULL);
-	RzPVector *matches = rz_regex_match_first(regex, text, next_text_offset, mflags);
+	RzPVector *matches = rz_regex_match_first(regex, text, text_size, next_text_offset, mflags);
 	while (matches && rz_pvector_len(matches) > 0) {
 		RzRegexMatch *whole_match = rz_pvector_head(matches);
 		next_text_offset = whole_match->start + whole_match->len;
@@ -249,7 +260,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 		}
 		rz_pvector_free(matches);
 		// Search again after the whole first match.
-		matches = rz_regex_match_first(regex, text, next_text_offset, mflags);
+		matches = rz_regex_match_first(regex, text, text_size, next_text_offset, mflags);
 	}
 
 	// Free last vector without matches.
@@ -263,18 +274,19 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
+	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags) {
 	rz_return_val_if_fail(regex && text, NULL);
 
 	RzPVector *all_matches = rz_pvector_new((RzPVectorFree)rz_pvector_free);
-	RzPVector *matches = rz_regex_match_first(regex, text, text_offset, mflags);
+	RzPVector *matches = rz_regex_match_first(regex, text, text_size, text_offset, mflags);
 	while (matches && rz_pvector_len(matches) > 0) {
 		rz_pvector_push(all_matches, matches);
 		RzRegexMatch *m = rz_pvector_head(matches);
 		// Search again after the last match.
 		text_offset = m->start + m->len;
-		matches = rz_regex_match_first(regex, text, text_offset, mflags);
+		matches = rz_regex_match_first(regex, text, text_size, text_offset, mflags);
 	}
 
 	// Free last vector without matches.
@@ -285,12 +297,14 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
 /**
  * \brief Checks if \p pattern can be found in \p text.
  */
-RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags) {
+RZ_API bool rz_regex_contains(const char *pattern, const char *text,
+	RzRegexSize text_size,
+	RzRegexFlags cflags, RzRegexFlags mflags) {
 	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	if (!re) {
 		return false;
 	}
-	RzPVector *matches = rz_regex_match_first(re, text, 0, mflags);
+	RzPVector *matches = rz_regex_match_first(re, text, text_size, 0, mflags);
 	bool found = matches != NULL && !rz_pvector_empty(matches);
 	rz_pvector_free(matches);
 	return found;
@@ -300,11 +314,13 @@ RZ_API bool rz_regex_contains(const char *pattern, const char *text, RzRegexFlag
  * \brief Searches for a \p pattern in \p text and returns all matches as concatenated string.
  *
  */
-RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text, RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
+RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text,
+	RzRegexSize text_size,
+	RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
 	rz_return_val_if_fail(pattern && text && separator, NULL);
 	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	RzStrBuf *sbuf = rz_strbuf_new("");
-	RzPVector *matches = rz_regex_match_all_not_grouped(re, text, 0, mflags);
+	RzPVector *matches = rz_regex_match_all_not_grouped(re, text, text_size, 0, mflags);
 	if (!matches || !sbuf) {
 		goto fini;
 	}

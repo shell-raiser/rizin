@@ -136,7 +136,7 @@ RZ_API int rz_cons_less_str(const char *str, const char *exitkeys) {
 				break;
 			}
 			/* find all occurrences */
-			RzPVector *matches = rz_regex_match_all_not_grouped(rx, str, 0, RZ_REGEX_DEFAULT);
+			RzPVector *matches = rz_regex_match_all_not_grouped(rx, str, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 			if (rz_pvector_empty(matches)) {
 				rz_pvector_free(matches);
 				break;

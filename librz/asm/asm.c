@@ -1585,7 +1585,7 @@ RZ_API RZ_OWN RzAsmTokenString *rz_asm_tokenize_asm_regex(RZ_BORROW RzStrBuf *as
 		}
 
 		// Search for token pattern.
-		RzPVector *match_sets = rz_regex_match_all(pattern->regex, asm_str, 0, RZ_REGEX_DEFAULT);
+		RzPVector *match_sets = rz_regex_match_all(pattern->regex, asm_str, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 		void **grouped_match;
 		rz_pvector_foreach (match_sets, grouped_match) {
 			if (rz_pvector_empty(*grouped_match)) {

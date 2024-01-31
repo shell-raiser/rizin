@@ -272,7 +272,7 @@ static char *subvar_stack(RzParse *p, RzAnalysisOp *op, RZ_NULLABLE RzAnalysisFu
 	if (!var_re) {
 		return tstr;
 	}
-	RzPVector *matches = rz_regex_match_first(var_re, tstr, 0, RZ_REGEX_DEFAULT);
+	RzPVector *matches = rz_regex_match_first(var_re, tstr, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 	if (!matches || rz_pvector_empty(matches)) {
 		rz_regex_free(var_re);
 		rz_pvector_free(matches);

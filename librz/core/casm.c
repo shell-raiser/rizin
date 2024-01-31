@@ -345,7 +345,7 @@ RZ_API RzList /*<RzCoreAsmHit *>*/ *rz_core_asm_strsearch(RzCore *core, const ch
 					matches = strstr(opst, tokens[matchcount]) != NULL;
 				} else {
 					rx = rz_regex_new(tokens[matchcount], RZ_REGEX_EXTENDED, 0);
-					RzPVector *tmp_m = rz_regex_match_first(rx, opst, 0, RZ_REGEX_DEFAULT);
+					RzPVector *tmp_m = rz_regex_match_first(rx, opst, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 					matches = !rz_pvector_empty(tmp_m) || tmp_m != NULL;
 					rz_regex_free(rx);
 					rz_pvector_free(tmp_m);

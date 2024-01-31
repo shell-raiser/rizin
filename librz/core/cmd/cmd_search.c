@@ -1081,7 +1081,7 @@ static RzList /*<RzCoreAsmHit *>*/ *construct_rop_gadget(RzCore *core, ut64 addr
 		idx += opsz;
 		addr += opsz;
 		if (rx) {
-			grep_find = rz_regex_contains(rx, opst, RZ_REGEX_EXTENDED, RZ_REGEX_DEFAULT);
+			grep_find = rz_regex_contains(rx, opst, RZ_REGEX_ZERO_TERMINATED, RZ_REGEX_EXTENDED, RZ_REGEX_DEFAULT);
 			search_hit = (end && grep && grep_find);
 		} else {
 			search_hit = (end && grep && strstr(opst, grep_str));

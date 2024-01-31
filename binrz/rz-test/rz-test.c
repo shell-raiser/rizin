@@ -743,7 +743,7 @@ static void print_diff(const char *actual, const char *expected, const char *reg
 	const char *output = actual;
 
 	if (regexp) {
-		RzStrBuf *match_str = rz_regex_full_match_str(regexp, actual, RZ_REGEX_EXTENDED, RZ_REGEX_DEFAULT, "\0");
+		RzStrBuf *match_str = rz_regex_full_match_str(regexp, actual, RZ_REGEX_ZERO_TERMINATED, RZ_REGEX_EXTENDED, RZ_REGEX_DEFAULT, "\0");
 		output = rz_strbuf_drain(match_str);
 	}
 
