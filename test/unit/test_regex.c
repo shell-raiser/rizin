@@ -4,6 +4,7 @@
 
 #include <rz_regex.h>
 #include "minunit.h"
+#include <rz_util/rz_strbuf.h>
 #include <rz_util/rz_str.h>
 #include <rz_vector.h>
 
@@ -37,6 +38,27 @@ bool test_rz_regex_extend_space(void) {
 	mu_assert_notnull(match, "match was not set");
 	mu_assert_eq(match->start, 0, "Start of match is not 0");
 	mu_assert_eq(match->len, 8, "Len of match is not 8");
+	rz_regex_free(reg);
+	mu_end;
+}
+
+bool test_rz_regex_all_to_str(void) {
+	RzRegex *reg = rz_regex_new("123", RZ_REGEX_EXTENDED, 0);
+	mu_assert_notnull(reg, "Regex was NULL");
+	RzStrBuf *res = rz_regex_full_match_str("(123)", "123 123 123", RZ_REGEX_ZERO_TERMINATED, RZ_REGEX_DEFAULT, RZ_REGEX_DEFAULT, "\n");
+	char *str = rz_strbuf_drain(res);
+	mu_assert_streq(str, "123\n123\n123", "String match failed.");
+	free(str);
+
+	res = rz_regex_full_match_str("(123)", "123", RZ_REGEX_ZERO_TERMINATED, RZ_REGEX_DEFAULT, RZ_REGEX_DEFAULT, "\n");
+	str = rz_strbuf_drain(res);
+	mu_assert_streq(str, "123", "String match failed.");
+	free(str);
+
+	res = rz_regex_full_match_str("(123)", "", RZ_REGEX_ZERO_TERMINATED, RZ_REGEX_DEFAULT, RZ_REGEX_DEFAULT, "\n");
+	str = rz_strbuf_drain(res);
+	mu_assert_streq(str, "", "String match failed.");
+	free(str);
 	rz_regex_free(reg);
 	mu_end;
 }
@@ -122,4 +144,5 @@ int main() {
 	mu_run_test(test_rz_regex_extend_space);
 	mu_run_test(test_rz_reg_exec);
 	mu_run_test(test_rz_regex_capture);
+	mu_run_test(test_rz_regex_all_to_str);
 }

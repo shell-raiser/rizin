@@ -332,6 +332,7 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char 
 		goto fini;
 	}
 
+	size_t i = 1;
 	void **m;
 	rz_pvector_foreach (matches, m) {
 		RzPVector *match_groups = *m;
@@ -341,11 +342,12 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char 
 			goto fini;
 		}
 		// No separator in case of only one match
-		if (rz_pvector_len(matches) == 1 && !rz_strbuf_appendf(sbuf, "%-.*s", (int)match->len, t)) {
-			goto fini;
+		if (i == rz_pvector_len(matches)) {
+			rz_strbuf_appendf(sbuf, "%-.*s", (int)match->len, t);
 		} else if (!rz_strbuf_appendf(sbuf, "%-.*s%s", (int)match->len, t, separator)) {
 			goto fini;
 		}
+		++i;
 	}
 
 fini:
