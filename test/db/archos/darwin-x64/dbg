@@ -44,11 +44,14 @@ ARGS=-d
 CMDS=<<EOF
 dm~hello
 EOF
-REGEXP_FILTER_OUT=(0x00000001.+objc_osx.[r_x]+)
+REGEXP_FILTER_OUT=((0x00000001[^\/]+)|(hello_objc_osx.[r_x]+))
 EXPECT=<<EOF
-0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx hello-objc-osx hello_objc_osx.r_x
-0x0000000100001000 - 0x0000000100002000 - usr     4K u rw- hello-objc-osx hello-objc-osx hello_objc_osx.rw
-0x0000000100002000 - 0x0000000100003000 - usr     4K u r-- hello-objc-osx hello-objc-osx hello_objc_osx.r
+0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx hello-objc-osx
+hello_objc_osx.r_x
+0x0000000100001000 - 0x0000000100002000 - usr     4K u rw- hello-objc-osx hello-objc-osx
+hello_objc_osx.rw
+0x0000000100002000 - 0x0000000100003000 - usr     4K u r-- hello-objc-osx hello-objc-osx
+hello_objc_osx.r
 EOF
 EXPECT_ERR=
 RUN
@@ -139,7 +142,7 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px] = (0x00000000000000)?[a-f0-9]+)|(--))\s+
+REGEXP_FILTER_OUT=((r[ia][px]\s=\s[a-fx0-9]+)|(--))
 EXPECT=<<EOF
 rip = f20
 --
@@ -175,7 +178,7 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px] = (0x00000000000000)?[a-f0-9]+)|(--))\s+
+REGEXP_FILTER_OUT=((r[ia][px]\s=\s[a-fx0-9]+)|(--))
 EXPECT=<<EOF
 rip = ea0
 --
