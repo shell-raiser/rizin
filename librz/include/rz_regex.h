@@ -69,19 +69,19 @@ RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char 
 	RzRegexSize text_offset,
 	RzRegexFlags mflags,
 	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata);
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags);
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags);
-RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
+RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch*>*>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,

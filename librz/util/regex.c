@@ -165,7 +165,7 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
  *
  * \return The matches as pvector. NULL in case of failure. Empty for no matches or regex related errors.
  */
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
@@ -242,7 +242,7 @@ fini:
  * The result is a flat vector of matches. A single match with multiple
  * groups is simply appeneded to the resulting vector.
  */
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
@@ -274,7 +274,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch>*/ *rz_regex_match_all_not_grouped(
 /**
  * \brief Finds all matches in a text and returns them as vector of vector matches.
  */
-RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch>>*/ *rz_regex_match_all(
+RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch*>*>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
