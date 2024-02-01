@@ -61,7 +61,7 @@ RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGe
 void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data);
 
 RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags);
-RZ_API void rz_regex_free(RzRegex *regex);
+RZ_API void rz_regex_free(RZ_OWN RzRegex *regex);
 RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzRegexSize errbuf_size);
 RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);
 RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
@@ -69,19 +69,19 @@ RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char 
 	RzRegexSize text_offset,
 	RzRegexFlags mflags,
 	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata);
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_all_not_grouped(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags);
-RZ_API RZ_OWN RzPVector /*<RzRegexMatch*>*/ *rz_regex_match_first(
+RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_first(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags);
-RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch*>*>*/ *rz_regex_match_all(
+RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch *> *>*/ *rz_regex_match_all(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
