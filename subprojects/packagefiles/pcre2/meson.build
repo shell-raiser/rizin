@@ -64,7 +64,7 @@ if cc.get_id() != 'tcc'
 endif
 
 pcre2_includes = [
-  '',
+  '.',
   'src/',
 ]
 
