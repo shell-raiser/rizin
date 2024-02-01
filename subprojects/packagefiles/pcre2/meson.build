@@ -1,5 +1,7 @@
 project('pcre2', 'c', version: '10.42')
 
+cc = meson.get_compiler('c')
+
 conf_data = configuration_data()
 
 pcre2_chartables = configure_file(input : 'src/pcre2_chartables.c.dist',
@@ -18,7 +20,6 @@ libpcre2_c_args = [
   '-DHAVE_CONFIG_H', # Default values from config.h
   '-DPCRE2_CODE_UNIT_WIDTH=8',
   '-DHAVE_MEMMOVE',
-  '-DSUPPORT_JIT',
   '-DSUPPORT_PCRE2_8',
   '-DSUPPORT_UNICODE',
   '-fvisibility=default',
@@ -35,7 +36,6 @@ pcre2_files = [
   'src/pcre2_error.c',
   'src/pcre2_extuni.c',
   'src/pcre2_find_bracket.c',
-  'src/pcre2_jit_compile.c',
   'src/pcre2_maketables.c',
   'src/pcre2_match.c',
   'src/pcre2_match_data.c',
@@ -53,6 +53,15 @@ pcre2_files = [
   'src/pcre2_valid_utf.c',
   'src/pcre2_xclass.c',
 ]
+
+# tcc doesn't support the MSVC asm syntax PCRE2 uses (`__asm { ... }`).
+# It is used in the JIT compiler code.
+# Because we want to support stuff like tcc + RISC-V (which probably doesn't
+# have a libpcre2 library, we exlcude JIT support for tcc in general).
+if cc.get_id() != 'tcc'
+  libpcre2_c_args += ['-DSUPPORT_JIT']
+  pcre2_files += ['src/pcre2_jit_compile.c']
+endif
 
 pcre2_includes = [
   'src/',
