@@ -337,7 +337,10 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char 
 		if (((int)match->len) < 0) {
 			goto fini;
 		}
-		if (!rz_strbuf_appendf(sbuf, "%-.*s%s", (int)match->len, t, separator)) {
+		// No separator in case of only one match
+		if (rz_pvector_len(matches) == 1 && !rz_strbuf_appendf(sbuf, "%-.*s", (int)match->len, t)) {
+			goto fini;
+		}	else if (!rz_strbuf_appendf(sbuf, "%-.*s%s", (int)match->len, t, separator)) {
 			goto fini;
 		}
 	}
