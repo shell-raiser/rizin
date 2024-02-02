@@ -132,6 +132,7 @@ rz_util = library('rz_util', rz_util_sources, libsdb_sources,
 rz_util_dep = declare_dependency(
   link_with: rz_util,
   include_directories: rz_util_includes,
+  dependencies: rz_util_deps,
 )
 meson.override_dependency('rz_util', rz_util_dep)
 
