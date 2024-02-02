@@ -139,27 +139,35 @@ dr rip
 dr rax
 EOF
 # Due to ASLR only the last 12bits are stable and get tested here.
-REGEXP_FILTER_OUT=((r[ai][xp])|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_OUT=((r[ai][xp])|([0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT=<<EOF
 rip
 f20
+
 rip
 f34
+
 rax
 000
+
 rip
 f38
+
 rax
 064
+
 EOF
-REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 f20
+
 hit breakpoint at:
 f34
+
 hit breakpoint at:
 f38
+
 EOF
 RUN
 
@@ -181,26 +189,34 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px])|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_OUT=((r[ia][px])|([0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT=<<EOF
 rip
 ea0
+
 rip
 edd
+
 rax
 190
+
 rip
 ee3
+
 rax
 0a0
+
 EOF
-REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 ea0
+
 hit breakpoint at:
 edd
+
 hit breakpoint at:
 ee3
+
 EOF
 RUN
