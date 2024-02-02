@@ -64,8 +64,8 @@ if cc.get_id() != 'tcc'
 endif
 
 pcre2_includes = [
-  '.',
-  'src/',
+  include_directories('.'),
+  include_directories('src/'),
 ]
 
 libpcre2 = static_library('pcre2', pcre2_files,
