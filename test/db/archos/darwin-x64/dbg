@@ -45,12 +45,9 @@ CMDS=<<EOF
 dm~hello
 EOF
 EXPECT=<<EOF
-0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx
-hello_objc_osx.r_x
-0x0000000100001000 - 0x0000000100002000 - usr     4K u rw- hello-objc-osx
-hello_objc_osx.rw
-0x0000000100002000 - 0x0000000100003000 - usr     4K u r-- hello-objc-osx
-hello_objc_osx.r
+0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx /Users/runner/work/rizin/rizin/test/bins/mach0/hello-objc-osx ; hello_objc_osx.r_x
+0x0000000100001000 - 0x0000000100002000 - usr     4K u rw- hello-objc-osx /Users/runner/work/rizin/rizin/test/bins/mach0/hello-objc-osx ; hello_objc_osx.rw
+0x0000000100002000 - 0x0000000100003000 - usr     4K u r-- hello-objc-osx /Users/runner/work/rizin/rizin/test/bins/mach0/hello-objc-osx ; hello_objc_osx.r
 EOF
 EXPECT_ERR=
 RUN
@@ -142,7 +139,7 @@ dr rip
 dr rax
 EOF
 # Due to ASLR only the last 12bits are stable and get tested here.
-REGEXP_FILTER_OUT=(r[ai][xp]|[0-9a-f][0-9a-f][0-9a-f]$)
+REGEXP_FILTER_OUT=((r[ai][xp])|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT=<<EOF
 rip
 f20
@@ -155,7 +152,7 @@ f38
 rax
 064
 EOF
-REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 f20
@@ -184,7 +181,7 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px]|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_OUT=((r[ia][px])|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT=<<EOF
 rip
 ea0
@@ -197,7 +194,7 @@ ee3
 rax
 0a0
 EOF
-REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:|([0-9a-f][0-9a-f][0-9a-f]$))
+REGEXP_FILTER_ERR=((hit\sbreakpoint\sat:)|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 ea0
