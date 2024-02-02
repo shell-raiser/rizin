@@ -282,7 +282,7 @@ static int check_fmt(RzMagic *ms, struct rz_magic *m) {
 	if (!re) {
 		return -1;
 	}
-	RzRegexStatus rc = rz_regex_match(re, RZ_MAGIC_DESC, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT, NULL);
+	RzRegexStatus rc = rz_regex_match(re, RZ_MAGIC_DESC, RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
 	rz_regex_free(re);
 	return rc > 0 ? 1 : 0;
 }

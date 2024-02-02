@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2023 Rot127 <unisono@quyllur.org>
 // SPDX-License-Identifier: LGPL-3.0-only
 
+#define PCRE2_STATIC
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
+
 #include <rz_util/rz_strbuf.h>
 #include <rz_vector.h>
 #include <rz_util/rz_regex.h>
@@ -8,9 +12,15 @@
 #include <rz_util/rz_assert.h>
 #include <rz_util.h>
 
-/**
- * \file Defines the wrapper functions to PCRE2.
- */
+typedef pcre2_general_context RzRegexGeneralContext; ///< General context.
+typedef pcre2_compile_context RzRegexCompContext; ///< The context for compiling.
+typedef pcre2_match_context RzRegexMatchContext; ///< The context for matching.
+
+typedef struct {
+	RzRegexGeneralContext *general;
+	RzRegexCompContext *compile;
+	RzRegexMatchContext *match;
+} RzRegexContexts;
 
 static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
 	PCRE2_UCHAR buffer[256];
@@ -88,28 +98,17 @@ RZ_API void rz_regex_free(RZ_OWN RzRegex *regex) {
 	pcre2_code_free(regex);
 }
 
-RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context) {
-	return pcre2_match_data_create_from_pattern(regex, context);
-}
-
-void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
+static void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
 	pcre2_match_data_free(match_data);
 }
 
 RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
-	RzRegexFlags mflags,
-	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata) {
-	bool one_time_match = false;
-	if (!mdata) {
-		one_time_match = true;
-		mdata = pcre2_match_data_create_from_pattern(regex, NULL);
-	}
+	RzRegexFlags mflags) {
+	pcre2_match_data *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, text_size, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
-	if (one_time_match) {
-		pcre2_match_data_free(mdata);
-	}
+	pcre2_match_data_free(mdata);
 	return rc;
 }
 

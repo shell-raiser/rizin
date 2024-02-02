@@ -10,37 +10,33 @@
 #include <rz_list.h>
 #include <sys/types.h>
 
-#define PCRE2_STATIC
-#define PCRE2_CODE_UNIT_WIDTH 8
-#include <pcre2.h>
+#define RZ_REGEX_SIZE size_t
 
 // Some basic PCRE2 macros. There are way more defined
 // and should be added here if needed.
-#define RZ_REGEX_ERROR_NOMATCH PCRE2_ERROR_NOMATCH
-#define RZ_REGEX_ERROR_PARTIAL PCRE2_ERROR_PARTIAL
+#define RZ_REGEX_ERROR_NOMATCH (-1) /* PCRE2_ERROR_NOMATCH */
+#define RZ_REGEX_ERROR_PARTIAL (-2) /* PCRE2_ERROR_PARTIAL */
 
 #define RZ_REGEX_DEFAULT       0
-#define RZ_REGEX_CASELESS      PCRE2_CASELESS
-#define RZ_REGEX_EXTENDED      PCRE2_EXTENDED
-#define RZ_REGEX_EXTENDED_MORE PCRE2_EXTENDED_MORE
-#define RZ_REGEX_NOSUB         PCRE2_NOSUB
-#define RZ_REGEX_MULTILINE     PCRE2_MULTILINE
+#define RZ_REGEX_CASELESS      0x00000008u /* PCRE2_CASELESS */
+#define RZ_REGEX_EXTENDED      0x00000080u /* PCRE2_EXTENDED */
+#define RZ_REGEX_EXTENDED_MORE 0x01000000u /* PCRE2_EXTENDED_MORE */
+#define RZ_REGEX_MULTILINE     0x00000400u /* PCRE2_MULTILINE */
 
-#define RZ_REGEX_JIT_PARTIAL_SOFT PCRE2_JIT_PARTIAL_SOFT
-#define RZ_REGEX_JIT_PARTIAL_HARD PCRE2_JIT_PARTIAL_HARD
+#define RZ_REGEX_JIT_PARTIAL_SOFT 0x00000002u /* PCRE2_JIT_PARTIAL_SOFT */
+#define RZ_REGEX_JIT_PARTIAL_HARD 0x00000004u /* PCRE2_JIT_PARTIAL_HARD */
 
-#define RZ_REGEX_PARTIAL_SOFT PCRE2_PARTIAL_SOFT
-#define RZ_REGEX_PARTIAL_HARD PCRE2_PARTIAL_HARD
+#define RZ_REGEX_PARTIAL_SOFT 0x00000010u /* PCRE2_PARTIAL_SOFT */
+#define RZ_REGEX_PARTIAL_HARD 0x00000020u /* PCRE2_PARTIAL_HARD */
 
-#define RZ_REGEX_UNSET           PCRE2_UNSET
-#define RZ_REGEX_ZERO_TERMINATED PCRE2_ZERO_TERMINATED
+#define RZ_REGEX_UNSET           (~(RZ_REGEX_SIZE)0) /* PCRE2_UNSET */
+#define RZ_REGEX_ZERO_TERMINATED (~(RZ_REGEX_SIZE)0) /* PCRE2_ZERO_TERMINATED */
 
 typedef int RzRegexStatus; ///< An status number returned by the regex API.
-typedef PCRE2_SIZE RzRegexSize; ///< Size of a text or regex. This is the size measured in code width. For UTF-8: bytes.
+typedef size_t RzRegexSize; ///< Size of a text or regex. This is the size measured in code width. For UTF-8: bytes.
 typedef ut32 RzRegexFlags; ///< Regex flag bits.
-typedef PCRE2_SPTR RzRegexPattern; ///< A regex pattern string.
-typedef pcre2_code RzRegex; ///< A regex expression.
-typedef pcre2_match_data RzRegexMatchData; ///< A regex match data from PCRE2
+typedef uint8_t *RzRegexPattern; ///< A regex pattern string.
+typedef void RzRegex; ///< A regex expression.
 
 typedef struct {
 	RzRegexSize mname_idx; ///< Match name index into the pattern name table.
@@ -48,17 +44,7 @@ typedef struct {
 	RzRegexSize len; ///< Length of match in bytes.
 } RzRegexMatch;
 
-typedef pcre2_general_context RzRegexGeneralContext; ///< General context.
-typedef pcre2_compile_context RzRegexCompContext; ///< The context for compiling.
-typedef pcre2_match_context RzRegexMatchContext; ///< The context for matching.
-typedef struct {
-	RzRegexGeneralContext *general;
-	RzRegexCompContext *compile;
-	RzRegexMatchContext *match;
-} RzRegexContexts;
-
-RZ_OWN RzRegexMatchData *rz_regex_match_data_new(const RzRegex *regex, RzRegexGeneralContext *context);
-void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data);
+typedef void RzRegexMatchData; ///< PCRE2 internal match data type
 
 RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags);
 RZ_API void rz_regex_free(RZ_OWN RzRegex *regex);
@@ -67,8 +53,7 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx);
 RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
-	RzRegexFlags mflags,
-	RZ_NULLABLE RZ_OUT RzRegexMatchData *mdata);
+	RzRegexFlags mflags);
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_all_not_grouped(
 	const RzRegex *regex,
 	RZ_NONNULL const char *text,
