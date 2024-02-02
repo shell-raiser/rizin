@@ -44,7 +44,6 @@ ARGS=-d
 CMDS=<<EOF
 dm~hello
 EOF
-REGEXP_FILTER_OUT=((0x00000001[^\/\n]+)|(hello_objc_osx.[r_wx]+))
 EXPECT=<<EOF
 0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx
 hello_objc_osx.r_x
@@ -142,22 +141,28 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px]\s=\s[a-fx0-9]+)|(--))
+# Due to ASLR only the last 12bits are stable and get tested here.
+REGEXP_FILTER_OUT=(r[ai][xp]|[0-9a-f][0-9a-f][0-9a-f]$)
 EXPECT=<<EOF
-rip = 0x000000010ee0ff20
---
-rip = 0x000000010ee0ff34
-rax = 0x0000000000000000
---
-rip = 0x000000010ee0ff38
-rax = 0x0000000000000064
-
+rip
+f20
+rip
+f34
+rax
+000
+rip
+f38
+rax
+064
 EOF
-REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:\s[0-9xa-f]+)
+REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT_ERR=<<EOF
-hit breakpoint at: 0x10ee0ff20
-hit breakpoint at: 0x10ee0ff34
-hit breakpoint at: 0x10ee0ff38
+hit breakpoint at:
+f20
+hit breakpoint at:
+f34
+hit breakpoint at:
+f38
 EOF
 RUN
 
@@ -179,20 +184,26 @@ dc
 dr rip
 dr rax
 EOF
-REGEXP_FILTER_OUT=((r[ia][px]\s=\s[a-fx0-9]+)|(--))
+REGEXP_FILTER_OUT=((r[ia][px]|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT=<<EOF
-rip = 0x0000000100000ea0
---
-rip = 0x0000000100000edd
-rax = 0x0000000000000190
---
-rip = 0x0000000100000ee3
-rax = 0x00000000000000a0
+rip
+ea0
+rip
+edd
+rax
+190
+rip
+ee3
+rax
+0a0
 EOF
-REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:\s[0-9xa-f]+)
+REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:|([0-9a-f][0-9a-f][0-9a-f]$))
 EXPECT_ERR=<<EOF
-hit breakpoint at: 0x100000ea0
-hit breakpoint at: 0x100000edd
-hit breakpoint at: 0x100000ee3
+hit breakpoint at:
+ea0
+hit breakpoint at:
+edd
+hit breakpoint at:
+ee3
 EOF
 RUN
