@@ -2,8 +2,8 @@
 // SPDX-FileCopyrightText: 2022 GustavoLCR <gugulcr@gmail.com>
 // SPDX-License-Identifier: LGPL-3.0-only
 
-#include <rz_regex.h>
 #include "minunit.h"
+#include <rz_util/rz_regex.h>
 #include <rz_util/rz_strbuf.h>
 #include <rz_util/rz_str.h>
 #include <rz_vector.h>
