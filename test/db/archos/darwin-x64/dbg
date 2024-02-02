@@ -44,7 +44,7 @@ ARGS=-d
 CMDS=<<EOF
 dm~hello
 EOF
-REGEXP_FILTER_OUT=((0x00000001[^\/]+)|(hello_objc_osx.[r_wx]+))
+REGEXP_FILTER_OUT=((0x00000001[^\/\n]+)|(hello_objc_osx.[r_wx]+))
 EXPECT=<<EOF
 0x0000000100000000 - 0x0000000100001000 - usr     4K u r-x hello-objc-osx
 hello_objc_osx.r_x
@@ -144,19 +144,20 @@ dr rax
 EOF
 REGEXP_FILTER_OUT=((r[ia][px]\s=\s[a-fx0-9]+)|(--))
 EXPECT=<<EOF
-rip = 0x0000000101665f20
+rip = 0x000000010ee0ff20
 --
-rip = 0x0000000101665f34
+rip = 0x000000010ee0ff34
 rax = 0x0000000000000000
 --
-rip = 0x0000000101665f38
+rip = 0x000000010ee0ff38
 rax = 0x0000000000000064
+
 EOF
 REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:\s[0-9xa-f]+)
 EXPECT_ERR=<<EOF
-hit breakpoint at: 0x0000000101665f20
-hit breakpoint at: 0x0000000101665f34
-hit breakpoint at: 0x0000000101665f38
+hit breakpoint at: 0x10ee0ff20
+hit breakpoint at: 0x10ee0ff34
+hit breakpoint at: 0x10ee0ff38
 EOF
 RUN
 
@@ -187,11 +188,12 @@ rax = 0x0000000000000190
 --
 rip = 0x0000000100000ee3
 rax = 0x00000000000000a0
+
 EOF
 REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:\s[0-9xa-f]+)
 EXPECT_ERR=<<EOF
-hit breakpoint at: 0x0000000100000ea0
-hit breakpoint at: 0x0000000100000edd
-hit breakpoint at: 0x0000000100000ee3
+hit breakpoint at: 0x100000ea0
+hit breakpoint at: 0x100000edd
+hit breakpoint at: 0x100000ee3
 EOF
 RUN
