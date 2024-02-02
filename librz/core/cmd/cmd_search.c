@@ -6,7 +6,7 @@
 #include <rz_core.h>
 #include <rz_io.h>
 #include <rz_list.h>
-#include <rz_regex.h>
+#include <rz_util/rz_regex.h>
 #include <rz_types_base.h>
 #include "../core_private.h"
 

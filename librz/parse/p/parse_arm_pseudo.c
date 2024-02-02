@@ -10,7 +10,7 @@
 #include <rz_flag.h>
 #include <rz_analysis.h>
 #include <rz_parse.h>
-#include <rz_regex.h>
+#include <rz_util/rz_regex.h>
 #include <rz_vector.h>
 
 #include "parse_common.c"

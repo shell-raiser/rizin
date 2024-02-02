@@ -34,7 +34,7 @@
 #if !USE_LIB_MAGIC
 
 #include "file.h"
-#include "rz_regex.h"
+#include <rz_util/rz_regex.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>

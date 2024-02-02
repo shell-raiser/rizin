@@ -13,7 +13,7 @@
 #include <rz_parse.h>
 
 #include "parse_common.c"
-#include "rz_regex.h"
+#include <rz_util/rz_regex.h>
 
 static RzList /*<char *>*/ *mips_tokenize(const char *assembly, size_t length);
 

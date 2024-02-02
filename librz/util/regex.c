@@ -3,7 +3,7 @@
 
 #include <rz_util/rz_strbuf.h>
 #include <rz_vector.h>
-#include <rz_regex.h>
+#include <rz_util/rz_regex.h>
 #include <rz_types.h>
 #include <rz_util/rz_assert.h>
 #include <rz_util.h>

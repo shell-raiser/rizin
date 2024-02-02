@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: 2020 thestr4ng3r <info@florianmaerkl.de>
 // SPDX-License-Identifier: LGPL-3.0-only
 
-#include <rz_regex.h>
 #include "rz_test.h"
 #include <rz_util/rz_str.h>
+#include <rz_util/rz_regex.h>
 #include <rz_cons.h>
 
 #if __WINDOWS__

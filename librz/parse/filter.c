@@ -4,7 +4,7 @@
 // SPDX-License-Identifier: LGPL-3.0-only
 
 #include "rz_util/rz_str.h"
-#include <rz_regex.h>
+#include <rz_util/rz_regex.h>
 #include <stdio.h>
 
 #include <rz_types.h>

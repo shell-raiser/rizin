@@ -4,7 +4,7 @@
 
 #include "rz_search.h"
 #include <rz_vector.h>
-#include <rz_regex.h>
+#include <rz_util/rz_regex.h>
 
 /**
  * \return -1 on failure.
