@@ -188,7 +188,6 @@ rax = 0x0000000000000190
 --
 rip = 0x0000000100000ee3
 rax = 0x00000000000000a0
-
 EOF
 REGEXP_FILTER_ERR=(hit\sbreakpoint\sat:\s[0-9xa-f]+)
 EXPECT_ERR=<<EOF

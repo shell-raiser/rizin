@@ -64,7 +64,7 @@ EOF
 REGEXP_FILTER_OUT=((loc\.[^_]\S*)|(main\s?\S*)|(entry0\+\d+)|(----))
 EXPECT=<<EOF
 main loc.func_6+6
-entry0+41 
+entry0+41
 ----
 loc.func_0
 main+8
