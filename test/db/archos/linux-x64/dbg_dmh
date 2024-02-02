@@ -24,11 +24,10 @@ echo ----
 7dso
 dmh | tail -n 3
 EOF
-REGEXP_FILTER_OUT=(status=[a-z,[0]+)|(size=0x[a-f0-9]+)|-+|\n|[()]|Chunk
+REGEXP_FILTER_OUT=(Chunk\(status=[a-z,[0]+(size=0x[a-f0-9]+)\))
 EXPECT=<<EOF
 Chunk(status=allocated,size=0x12010)
 Chunk(status=free,size=0xed60)
-----
 Chunk(status=allocated,size=0x12010)
 Chunk(status=allocated,size=0x20)
 Chunk(status=free,size=0xed40)
