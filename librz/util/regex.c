@@ -79,8 +79,7 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(RZ_NONNULL const char *pattern, RzRegexFlags
 		free(fixed_pat);
 		return NULL;
 	}
-#ifndef __TINYC__
-	// We exclude JIT for TCC because it doesn't support the asm syntax PCRE2 uses.
+#ifdef SUPPORTS_PCRE2_JIT
 	RzRegexStatus jit_err = pcre2_jit_compile(regex, jflags | PCRE2_JIT_COMPLETE);
 	if (jit_err < 0) {
 		print_pcre2_err(pat, jit_err, 0);

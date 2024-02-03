@@ -196,6 +196,12 @@ else
 endif
 
 # Handle PCRE2
+cpu_jit_supported = [ 'aarch64', 'arm', 'mips', 'mips64', 'ppc', 'ppc64', 'riscv32', 'riscv64', 's390x', 'x86', 'x86_64' ]
+pcre2_jit_supported = host_machine.cpu_family() in cpu_jit_supported and cc.get_id() != 'tcc'
+if pcre2_jit_supported
+  add_project_arguments(['-DSUPPORTS_PCRE2_JIT'], language: 'c')
+endif
+
 pcre2_dep_opt = get_option('use_sys_pcre2')
 pcre2_dep = disabler()
 if pcre2_dep_opt.enabled() or pcre2_dep_opt.auto()
@@ -394,6 +400,7 @@ foreach it : ccs
   it_userconf.set10('HAVE_PTHREAD', have_pthread)
   it_userconf.set10('HAVE_LZMA', get_option('use_lzma'))
   it_userconf.set10('HAVE_ZLIB', get_option('use_zlib'))
+  it_userconf.set10('SUPPORTS_PCRE2_JIT', pcre2_jit_supported)
 
   if it_machine.system() == 'freebsd' or it_machine.system() == 'dragonfly'
     add_project_link_arguments('-Wl,--unresolved-symbols,ignore-in-object-files', language: 'c', native: it_native)
@@ -764,6 +771,7 @@ summary({
   'Debugger enabled': has_debugger,
   'Capstone version': capstone_dep.version(),
   'PCRE2 version': pcre2_dep.version(),
+  'PCRE2 JIT': pcre2_jit_supported,
   'System magic library': sys_magic.found() and sys_magic.type_name() != 'internal',
   'System pcre2 library': pcre2_dep.found() and pcre2_dep.type_name() != 'internal',
   'System xxhash library': xxhash_dep.found() and xxhash_dep.type_name() != 'internal',
