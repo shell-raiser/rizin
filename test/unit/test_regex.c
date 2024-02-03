@@ -142,11 +142,24 @@ bool test_rz_regex_capture(void) {
 bool test_rz_regex_named_matches(void) {
 	RzRegex *reg = rz_regex_new("(?<proto>^\\w+)(:\\/\\/)(?<domain>\\w+)\\.(?<tdomain>\\w+)", RZ_REGEX_EXTENDED, 0);
 	mu_assert_notnull(reg, "Regex was NULL");
-	RzRegexMatch *match = NULL;
-	mu_assert_true(exec_regex(reg, "https://rizin.re", &match), "Regex match failed");
-	mu_assert_streq((char *)rz_regex_get_match_name(reg, 1), "proto", "proto was not matched.");
-	mu_assert_streq((char *)rz_regex_get_match_name(reg, 3), "domain", "domain was not matched.");
-	mu_assert_streq((char *)rz_regex_get_match_name(reg, 4), "tdomain", "tdomain was not matched.");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 1), "proto", "proto name not set.");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 3), "domain", "domain name not set.");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 4), "tdomain", "tdomain name not set.");
+
+	RzPVector *matches = rz_regex_match_all_not_grouped(reg, "https://rizin.re", RZ_REGEX_ZERO_TERMINATED, 0, RZ_REGEX_DEFAULT);
+	mu_assert_true(matches && !rz_pvector_empty(matches), "Regex match failed");
+	mu_assert_eq(rz_pvector_len(matches), 5, "Regex match count failed.");
+
+	RzRegexMatch *match = rz_pvector_at(matches, 0);
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, match->group_idx), "(null)", "(null) was not matched.");
+	match = rz_pvector_at(matches, 1);
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, match->group_idx), "proto", "proto was not matched.");
+	match = rz_pvector_at(matches, 2);
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, match->group_idx), "(null)", "(null) was not matched.");
+	match = rz_pvector_at(matches, 3);
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, match->group_idx), "domain", "domain was not matched.");
+	match = rz_pvector_at(matches, 4);
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, match->group_idx), "tdomain", "tdomain was not matched.");
 
 	rz_regex_free(reg);
 	mu_end;

@@ -39,7 +39,7 @@ typedef uint8_t *RzRegexPattern; ///< A regex pattern string.
 typedef void RzRegex; ///< A regex expression.
 
 typedef struct {
-	RzRegexSize mname_idx; ///< Match name index into the pattern name table.
+	RzRegexSize group_idx; ///< Index of the group. Used to determine name if any was given.
 	RzRegexSize start; ///< Start offset into the text where the match starts.
 	RzRegexSize len; ///< Length of match in bytes.
 } RzRegexMatch;

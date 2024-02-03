@@ -244,18 +244,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_first(
 		RzRegexMatch *match = RZ_NEW0(RzRegexMatch);
 		match->start = ovector[2 * i];
 		match->len = ovector[2 * i + 1] - match->start;
-
-		// Match index with a name.
-		// Index is saved in the first two bytes of a table entry.
-		ut32 n = (nametable_ptr[0] << 8) | nametable_ptr[1];
-		if (n != i) {
-			// No name
-			match->mname_idx = RZ_REGEX_UNSET;
-			rz_pvector_push(matches, match);
-			continue;
-		}
-
-		match->mname_idx = n;
+		match->group_idx = i;
 		nametable_ptr += name_entry_size;
 		rz_pvector_push(matches, match);
 	}
