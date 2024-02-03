@@ -63,6 +63,11 @@ if cc.get_id() != 'tcc'
   pcre2_files += ['src/pcre2_jit_compile.c']
 endif
 
+if host_machine.system() == 'openbsd' or host_machine.system() == 'netbsd'
+  # jit compilation fails with "no more memory" if wx allocations are allowed.
+  libpcre2_c_args += ['-DSLJIT_WX_EXECUTABLE_ALLOCATOR']
+endif
+
 pcre2_includes = [
   include_directories('.'),
   include_directories('src/'),
