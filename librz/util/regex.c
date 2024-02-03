@@ -127,7 +127,15 @@ RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzReg
 	pcre2_get_error_message(errcode, (PCRE2_UCHAR *)errbuf, errbuf_size);
 }
 
-RZ_API const ut8 *rz_regex_get_match_name(RZ_NONNULL const RzRegex *regex, ut32 name_idx) {
+/**
+ * \brief Returns the name of a group.
+ *
+ * \param regex The regex expression with named groups.
+ * \param group_idx The index of the group to get the name for.
+ *
+ * \return The name of the group or NULL in case of failure or non is was set.
+ */
+RZ_API const ut8 *rz_regex_get_match_name(RZ_NONNULL const RzRegex *regex, ut32 group_idx) {
 	rz_return_val_if_fail(regex, NULL);
 
 	ut32 namecount;
@@ -151,7 +159,7 @@ RZ_API const ut8 *rz_regex_get_match_name(RZ_NONNULL const RzRegex *regex, ut32 
 
 	for (size_t i = 0; i < namecount; i++) {
 		int n = (nametable_ptr[0] << 8) | nametable_ptr[1];
-		if (n == name_idx) {
+		if (n == group_idx) {
 			return nametable_ptr + 2;
 		}
 		nametable_ptr += name_entry_size;

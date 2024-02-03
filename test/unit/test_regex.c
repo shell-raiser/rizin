@@ -139,10 +139,24 @@ bool test_rz_regex_capture(void) {
 	mu_end;
 }
 
+bool test_rz_regex_named_matches(void) {
+	RzRegex *reg = rz_regex_new("(?<proto>^\\w+)(:\\/\\/)(?<domain>\\w+)\\.(?<tdomain>\\w+)", RZ_REGEX_EXTENDED, 0);
+	mu_assert_notnull(reg, "Regex was NULL");
+	RzRegexMatch *match = NULL;
+	mu_assert_true(exec_regex(reg, "https://rizin.re", &match), "Regex match failed");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 1), "proto", "proto was not matched.");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 3), "domain", "domain was not matched.");
+	mu_assert_streq((char *)rz_regex_get_match_name(reg, 4), "tdomain", "tdomain was not matched.");
+
+	rz_regex_free(reg);
+	mu_end;
+}
+
 int main() {
 	mu_run_test(test_rz_regex_all_match);
 	mu_run_test(test_rz_regex_extend_space);
 	mu_run_test(test_rz_reg_exec);
 	mu_run_test(test_rz_regex_capture);
 	mu_run_test(test_rz_regex_all_to_str);
+	mu_run_test(test_rz_regex_named_matches);
 }
