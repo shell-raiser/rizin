@@ -79,4 +79,4 @@ RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(RZ_NONNULL const char *pattern, 
 	RzRegexSize text_size,
 	RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator);
 
-#endif /* !_REGEX_H_ */
+#endif /* RZ_REGEX_H */
