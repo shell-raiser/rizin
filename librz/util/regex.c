@@ -22,10 +22,10 @@ typedef struct {
 	RzRegexMatchContext *match;
 } RzRegexContexts;
 
-static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
+static void print_pcre2_err(RZ_NULLABLE const char *pattern, RzRegexStatus err_num, size_t err_off) {
 	PCRE2_UCHAR buffer[256];
 	pcre2_get_error_message(err_num, buffer, sizeof(buffer));
-	RZ_LOG_ERROR("Regex compilation failed at %" PFMTSZu ": %s\n", err_off,
+	RZ_LOG_ERROR("Regex compilation for '%s' failed at %" PFMTSZu ": %s\n", pattern ? pattern : "(null)", err_off,
 		buffer);
 }
 
@@ -74,20 +74,19 @@ RZ_API RZ_OWN RzRegex *rz_regex_new(RZ_NONNULL const char *pattern, RzRegexFlags
 		&err_num,
 		&err_off,
 		NULL);
-	if (fixed_pat) {
-		free(fixed_pat);
-	}
 	if (!regex) {
-		print_pcre2_err(err_num, err_off);
+		print_pcre2_err(pat, err_num, err_off);
+		free(fixed_pat);
 		return NULL;
 	}
 #ifndef __TINYC__
 	// We exclude JIT for TCC because it doesn't support the asm syntax PCRE2 uses.
 	RzRegexStatus jit_err = pcre2_jit_compile(regex, jflags | PCRE2_JIT_COMPLETE);
 	if (jit_err < 0) {
-		print_pcre2_err(jit_err, 0);
+		print_pcre2_err(pat, jit_err, 0);
 	}
 #endif
+	free(fixed_pat);
 	return regex;
 }
 
