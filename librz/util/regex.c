@@ -41,7 +41,9 @@ static void print_pcre2_err(RzRegexStatus err_num, size_t err_off) {
  *
  * \return The compiled regex or NULL in case of failure.
  */
-RZ_API RZ_OWN RzRegex *rz_regex_new(const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags) {
+RZ_API RZ_OWN RzRegex *rz_regex_new(RZ_NONNULL const char *pattern, RzRegexFlags cflags, RzRegexFlags jflags) {
+	rz_return_val_if_fail(pattern, NULL);
+
 	RzRegexStatus err_num;
 	RzRegexSize err_off;
 	ut32 supported = 0;
@@ -102,10 +104,12 @@ static void rz_regex_match_data_free(RZ_OWN RzRegexMatchData *match_data) {
 	pcre2_match_data_free(match_data);
 }
 
-RZ_API RzRegexStatus rz_regex_match(const RzRegex *regex, RZ_NONNULL const char *text,
+RZ_API RzRegexStatus rz_regex_match(RZ_NONNULL const RzRegex *regex, RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags) {
+	rz_return_val_if_fail(regex && text, RZ_REGEX_ERROR_NOMATCH);
+
 	pcre2_match_data *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, text_size, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
 	pcre2_match_data_free(mdata);
@@ -123,7 +127,7 @@ RZ_API void rz_regex_error_msg(RzRegexStatus errcode, RZ_OUT char *errbuf, RzReg
 	pcre2_get_error_message(errcode, (PCRE2_UCHAR *)errbuf, errbuf_size);
 }
 
-RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
+RZ_API const ut8 *rz_regex_get_match_name(RZ_NONNULL const RzRegex *regex, ut32 name_idx) {
 	rz_return_val_if_fail(regex, NULL);
 
 	ut32 namecount;
@@ -168,11 +172,13 @@ RZ_API const ut8 *rz_regex_get_match_name(const RzRegex *regex, ut32 name_idx) {
  * \return The matches as pvector. NULL in case of failure. Empty for no matches or regex related errors.
  */
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_first(
-	const RzRegex *regex,
+	RZ_NONNULL const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
 	RzRegexFlags mflags) {
+	rz_return_val_if_fail(regex && text, NULL);
+
 	RzPVector *matches = rz_pvector_new(NULL);
 	RzRegexMatchData *mdata = pcre2_match_data_create_from_pattern(regex, NULL);
 	RzRegexStatus rc = pcre2_match(regex, (PCRE2_SPTR)text, text_size, text_offset, mflags | PCRE2_NO_UTF_CHECK, mdata, NULL);
@@ -245,7 +251,7 @@ fini:
  * groups is simply appeneded to the resulting vector.
  */
 RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_all_not_grouped(
-	const RzRegex *regex,
+	RZ_NONNULL const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize next_text_offset,
@@ -277,7 +283,7 @@ RZ_API RZ_OWN RzPVector /*<RzRegexMatch *>*/ *rz_regex_match_all_not_grouped(
  * \brief Finds all matches in a text and returns them as vector of vector matches.
  */
 RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch *> *>*/ *rz_regex_match_all(
-	const RzRegex *regex,
+	RZ_NONNULL const RzRegex *regex,
 	RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexSize text_offset,
@@ -302,7 +308,7 @@ RZ_API RZ_OWN RzPVector /*<RzVector<RzRegexMatch *> *>*/ *rz_regex_match_all(
 /**
  * \brief Checks if \p pattern can be found in \p text.
  */
-RZ_API bool rz_regex_contains(const char *pattern, const char *text,
+RZ_API bool rz_regex_contains(RZ_NONNULL const char *pattern, RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexFlags cflags, RzRegexFlags mflags) {
 	RzRegex *re = rz_regex_new(pattern, cflags, 0);
@@ -320,10 +326,11 @@ RZ_API bool rz_regex_contains(const char *pattern, const char *text,
  * Sub-groups are ignored.
  *
  */
-RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(const char *pattern, const char *text,
+RZ_API RZ_OWN RzStrBuf *rz_regex_full_match_str(RZ_NONNULL const char *pattern, RZ_NONNULL const char *text,
 	RzRegexSize text_size,
 	RzRegexFlags cflags, RzRegexFlags mflags, RZ_NONNULL const char *separator) {
 	rz_return_val_if_fail(pattern && text && separator, NULL);
+
 	RzRegex *re = rz_regex_new(pattern, cflags, 0);
 	RzStrBuf *sbuf = rz_strbuf_new("");
 	RzPVector *matches = rz_regex_match_all(re, text, text_size, 0, mflags);
