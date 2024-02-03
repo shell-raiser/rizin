@@ -10,8 +10,6 @@
 RZ_IPI void pager_color_line(const char *line, RzStrpool *p, RzPVector /*<RzRegexMatch *>*/ *ml) {
 	int m_len, offset = 0;
 	char *m_addr;
-	void *it;
-	RzRegexMatch *m;
 	char *inv[2] = {
 		RZ_CONS_INVERT(true, true),
 		RZ_CONS_INVERT(false, true)
@@ -21,8 +19,9 @@ RZ_IPI void pager_color_line(const char *line, RzStrpool *p, RzPVector /*<RzRege
 		strlen(inv[1])
 	};
 	rz_strpool_empty(p);
+	void **it;
 	rz_pvector_foreach (ml, it) {
-		m = it;
+		RzRegexMatch *m = *it;
 		/* highlight a match */
 		rz_strpool_memcat(p, line + offset, m->start - offset);
 		rz_strpool_memcat(p, inv[0], linv[0]);
