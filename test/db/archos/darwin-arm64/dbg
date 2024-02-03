@@ -31,12 +31,14 @@ stur w0, [fp, -4]
 stur x1, [fp, -0x10]
 str x8, [sp, 0x10]
 EOF
-REGEXP_FILTER_ERR=(((Continue\suntil)|(hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]))
+REGEXP_FILTER_ERR=(((Continue\suntil)|(hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 Continue until
 c88
+
 hit breakpoint at:
 c88
+
 EOF
 RUN
 
@@ -129,12 +131,14 @@ pc
 f48
 x8 = 0x0000000000000064
 EOF
-REGEXP_FILTER_ERR=(((Continue\suntil)|(hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]))
+REGEXP_FILTER_ERR=(((Continue\suntil)|(hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 Continue until
 f30
+
 hit breakpoint at:
 f30
+
 EOF
 RUN
 
@@ -172,14 +176,17 @@ pc
 f48
 x8 = 0x0000000000000064
 EOF
-REGEXP_FILTER_ERR=(((hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]))
+REGEXP_FILTER_ERR=(((hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 f30
+
 hit breakpoint at:
 f44
+
 hit breakpoint at:
 f48
+
 EOF
 RUN
 
@@ -197,12 +204,13 @@ EXPECT=<<EOF
 x8 = 0x000000000000002a
 Result = 1337
 EOF
-REGEXP_FILTER_ERR=(([a-zA-Z:]+|[0-9a-f][0-9a-f][0-9a-f]))
+REGEXP_FILTER_ERR=(([a-zA-Z:]+|[0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 hit 
 breakpoint 
 at: 
 f70
+
 Process 
 finished
 EOF
@@ -242,13 +250,16 @@ pc
 f48
 x8 = 0x0000000000000064
 EOF
-REGEXP_FILTER_ERR=(((hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]))
+REGEXP_FILTER_ERR=(((hit\sbreakpoint\sat:)|[0-9a-f][0-9a-f][0-9a-f]\n))
 EXPECT_ERR=<<EOF
 hit breakpoint at:
 f30
+
 hit breakpoint at:
 f44
+
 hit breakpoint at:
 f48
+
 EOF
 RUN
