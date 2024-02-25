@@ -213,14 +213,13 @@ ESIL:
   - librz/core/cil.c
 
 DWARF:
-  - librz/bin/dwarf.c
+  - librz/bin/dwarf/*
   - librz/analysis/dwarf_process.c
-  - librz/core/cdwarf.c
 
 PDB:
   - librz/bin/pdb/**/*
   - librz/include/rz_pdb.h
-  - librz/analysis/type_pdb.c
+  - librz/analysis/pdb_process.c
   - librz/core/cpdb.c
 
 GDB:
