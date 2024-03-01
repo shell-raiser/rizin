@@ -14,7 +14,6 @@
 #include "../bin/dwarf/dwarf_private.h"
 #include "core_private.h"
 
-
 #define is_invalid_address_va(va, vaddr, paddr)  (((va) && (vaddr) == UT64_MAX) || (!(va) && (paddr) == UT64_MAX))
 #define is_invalid_address_va2(va, vaddr, paddr) (((va) != VA_FALSE && (vaddr) == UT64_MAX) || ((va) == VA_FALSE && (paddr) == UT64_MAX))
 #define is_in_range(at, from, sz)                ((at) >= (from) && (at) < ((from) + (sz)))

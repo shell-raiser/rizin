@@ -1841,7 +1841,7 @@ RZ_API void rz_bin_dwarf_addr_free(RzBinDwarfAddr *self);
 RZ_API RZ_OWN RzBinDwarfAddr *rz_bin_dwarf_addr_new(RZ_OWN RZ_NONNULL RzBinEndianReader *R);
 RZ_API RZ_OWN RzBinDwarfAddr *rz_bin_dwarf_addr_from_file(RZ_BORROW RZ_NONNULL RzBinFile *bf);
 
-RZ_API RZ_OWN const char *rz_bin_dwarf_attr_string(
+RZ_API const char *rz_bin_dwarf_attr_string(
 	RZ_BORROW RZ_NONNULL const RzBinDwarfAttr *attr,
 	RZ_BORROW RZ_NULLABLE const RzBinDWARF *dw,
 	ut64 str_offsets_base);
