@@ -320,7 +320,7 @@ typedef enum {
 	DW_AT_deleted = 0x8a,
 	DW_AT_defaulted = 0x8b,
 	DW_AT_loclists_base = 0x8c,
-/* <_lo_user ; _hi_user> Interval is reserved for vendor extensions */
+	/* <_lo_user ; _hi_user> Interval is reserved for vendor extensions */
 	DW_AT_lo_user = 0x2000,
 	// extensions:
 	DW_AT_MIPS_fde = 0x2001,
@@ -497,7 +497,7 @@ typedef enum {
 	DW_AT_APPLE_sdk = 0x3fef,
 	DW_AT_APPLE_origin = 0x3ff0,
 	DW_AT_hi_user = 0x3fff,
-d} DW_AT;
+} DW_AT;
 
 typedef enum {
 	DW_FORM_addr = 0x01,
