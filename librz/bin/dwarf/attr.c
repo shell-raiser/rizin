@@ -41,7 +41,9 @@ RZ_IPI bool RzBinDwarfAttr_parse(
 		break;
 	case DW_FORM_data16:
 		value->kind = RzBinDwarfAttr_UConstant;
-		READ_UT_OR(128, value->u128, return false);
+		if (!R_read128(R, &value->u128)) {
+			return false;
+		}
 		break;
 	case DW_FORM_sdata:
 		value->kind = RzBinDwarfAttr_Constant;
