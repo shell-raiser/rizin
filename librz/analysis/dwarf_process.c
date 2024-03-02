@@ -574,7 +574,7 @@ static char *at_string_escaped(const RzBinDwarfAttr *attr, DwContext *ctx) {
 	bool found;
 	String *str = ht_up_find(ctx->str_escaped, (ut64)attr, &found);
 	if (found) {
-		return rz_mem_dup(str->c_str, str->length);
+		return rz_mem_dup(str->c_str, str->length + 1);
 	}
 
 	char *c_str = rz_bin_dwarf_attr_string_escaped(attr, ctx->dw, ctx->unit->str_offsets_base);
@@ -588,7 +588,7 @@ static char *at_string_escaped(const RzBinDwarfAttr *attr, DwContext *ctx) {
 	str->c_str = c_str;
 	str->length = strlen(c_str);
 	ht_up_insert(ctx->str_escaped, (ut64)attr, str);
-	return rz_mem_dup(str->c_str, str->length);
+	return rz_mem_dup(str->c_str, str->length + 1);
 }
 
 static char *anonymous_name(const char *k, ut64 offset) {
