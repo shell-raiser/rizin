@@ -1725,7 +1725,7 @@ static RzBinDwarfDie *die_next(RzBinDwarfDie *die, RzBinDWARF *dw) {
 }
 
 static RzBinDwarfDie *die_end(RzBinDwarfCompUnit *unit) {
-	return unit->dies.a + unit->dies.len * unit->dies.elem_size;
+	return rz_vector_index_ptr(&unit->dies, rz_vector_len(&unit->dies));
 }
 
 /**
@@ -1757,6 +1757,7 @@ RZ_API void rz_analysis_dwarf_preprocess_info(
 		for (RzBinDwarfDie *die = rz_vector_head(&unit->dies);
 			die && die < die_end(unit);
 			die = die_next(die, dw)) {
+
 			die_parse(&ctx, die);
 		}
 	}
