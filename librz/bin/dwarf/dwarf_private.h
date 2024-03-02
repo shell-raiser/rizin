@@ -44,7 +44,7 @@ RZ_IPI bool Range_is_base_address(RzBinDwarfRange *self, ut8 address_size);
 RZ_IPI void Range_add_base_address(RzBinDwarfRange *self, ut64 base_address, ut8 address_size);
 RZ_IPI void Range_free(RzBinDwarfRange *self);
 
-RZ_IPI void DebugRngLists_free(RzBinDwarfRngLists *self);
+RZ_IPI void RngLists_free(RzBinDwarfRngLists *self);
 
 #include "value.h"
 #include "op.h"

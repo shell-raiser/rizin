@@ -114,7 +114,7 @@ static void RngList_free(RzBinDwarfRngList *self) {
 
 Ht_FREE_IMPL(UP, RngList, RngList_free);
 
-RZ_IPI void DebugRngLists_free(RzBinDwarfRngLists *self) {
+RZ_IPI void RngLists_free(RzBinDwarfRngLists *self) {
 	if (!self) {
 		return;
 	}
@@ -217,18 +217,19 @@ static bool convert_raw(
 	return true;
 }
 
-static bool rnglist_parse_at(
+static bool RngList_at(
 	RzBinDwarfRngLists *self,
 	RzBinDwarfAddr *addr,
 	RzBinDwarfCompUnit *cu,
-	ut64 offset) {
+	ut64 offset,
+	RzBinDwarfRngList **out) {
 	RzBinEndianReader *R = cu->hdr.encoding.version <= 4
 		? self->ranges
 		: self->rnglists;
 	RzBinDwarfRngListsFormat format = cu->hdr.encoding.version <= 4
 		? RzBinDwarfRngListsFormat_Bare
 		: RzBinDwarfRngListsFormat_Rle;
-	OK_OR(R && R_seek(R, offset, RZ_BUF_SET) > 0, return false);
+	OK_OR(R && R_seek(R, offset, RZ_BUF_SET) && out, return false);
 
 	RzBinDwarfRngList *rnglist = RZ_NEW0(RzBinDwarfRngList);
 	RET_FALSE_IF_FAIL(rnglist);
@@ -258,6 +259,7 @@ static bool rnglist_parse_at(
 		Range_free(range);
 	}
 	ht_up_update(self->by_offset, rnglist->offset, rnglist);
+	*out = rnglist;
 	return true;
 }
 
@@ -300,22 +302,26 @@ RZ_API RZ_OWN RzBinDwarfRngLists *rz_bin_dwarf_rnglists_new_from_file(
 }
 
 /**
- * \brief Parse the RzBinDwarfRngList at the given offset
+ * \brief Get the RzBinDwarfRngList at the given offset
  * \param self  The RzBinDwarfRngListTable
  * \param encoding The RzBinDwarfEncoding
  * \param offset The offset to parse at
- * \return true on success, false otherwise
+ * \return The RzBinDwarfRngList instance on success, NULL otherwise
  */
-RZ_API bool rz_bin_dwarf_rnglists_parse_at(
+RZ_API RzBinDwarfRngList *rz_bin_dwarf_rnglists_get(
 	RZ_BORROW RZ_NONNULL RzBinDwarfRngLists *self,
 	RZ_BORROW RZ_NONNULL RzBinDwarfAddr *addr,
 	RZ_BORROW RZ_NONNULL RzBinDwarfCompUnit *cu,
 	ut64 offset) {
-	RET_FALSE_IF_FAIL(self && cu);
-	ERR_IF_FAIL(rnglist_parse_at(self, addr, cu, offset));
-	return true;
-err:
-	return false;
+	rz_return_val_if_fail(self && cu, NULL);
+	RzBinDwarfRngList *rngs = ht_up_find(self->by_offset, offset, NULL);
+	if (rngs) {
+		return rngs;
+	}
+	if (RngList_at(self, addr, cu, offset, &rngs)) {
+		return rngs;
+	}
+	return NULL;
 }
 
 static bool cb_rnglist_dump(void *u, ut64 k, const void *v) {
