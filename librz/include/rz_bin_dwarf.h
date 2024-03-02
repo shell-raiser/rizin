@@ -1796,11 +1796,6 @@ RZ_API void rz_bin_dwarf_loclists_dump(
 	RZ_NONNULL RZ_BORROW RzBinDWARF *dw,
 	RZ_NONNULL RZ_BORROW RzStrBuf *sb);
 
-RZ_API bool rz_bin_dwarf_loclists_parse_at(
-	RZ_BORROW RZ_NONNULL RzBinDwarfLocLists *self,
-	RZ_BORROW RZ_NONNULL RzBinDwarfAddr *addr,
-	RZ_BORROW RZ_NONNULL RzBinDwarfCompUnit *cu,
-	ut64 offset);
 RZ_API RzBinDwarfLocList *rz_bin_dwarf_loclists_get(
 	RZ_BORROW RZ_NONNULL RzBinDwarfLocLists *self,
 	RZ_BORROW RZ_NONNULL RzBinDwarfAddr *addr,

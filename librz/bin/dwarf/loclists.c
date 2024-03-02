@@ -230,9 +230,18 @@ static void LocList_free(RzBinDwarfLocList *self) {
 	free(self);
 }
 
-static bool LocList_parse_at(
-	RzBinDwarfLocLists *self, RzBinDwarfAddr *addr, RzBinDwarfCompUnit *cu, ut64 offset) {
-	rz_return_val_if_fail(self && cu, false);
+/**
+ * \brief Parse a location list table at the given offset
+ * \param self RzBinDwarfLocListTable instance
+ * \param cu RzBinDwarfCompUnit instance
+ * \param offset The offset to parse at
+ * \param out Pointer to output the location list
+ * \return true on success, false otherwise
+ */
+static bool LocList_at(
+	RzBinDwarfLocLists *self, RzBinDwarfAddr *addr, RzBinDwarfCompUnit *cu, ut64 offset,
+	RzBinDwarfLocList **out) {
+	rz_return_val_if_fail(self && cu && out, false);
 	RzBinEndianReader *R = cu->hdr.encoding.version <= 4
 		? self->loc
 		: self->loclists;
@@ -271,26 +280,8 @@ static bool LocList_parse_at(
 		return false;
 	}
 	ht_up_update(self->by_offset, loclist->offset, loclist);
+	*out = loclist;
 	return true;
-}
-
-/**
- * \brief Parse a location list table at the given offset
- * \param self RzBinDwarfLocListTable instance
- * \param cu RzBinDwarfCompUnit instance
- * \param offset The offset to parse at
- * \return true on success, false otherwise
- */
-RZ_API bool rz_bin_dwarf_loclists_parse_at(
-	RZ_BORROW RZ_NONNULL RzBinDwarfLocLists *self,
-	RZ_BORROW RZ_NONNULL RzBinDwarfAddr *addr,
-	RZ_BORROW RZ_NONNULL RzBinDwarfCompUnit *cu,
-	ut64 offset) {
-	rz_return_val_if_fail(self && cu, false);
-	ERR_IF_FAIL(LocList_parse_at(self, addr, cu, offset));
-	return true;
-err:
-	return false;
 }
 
 RZ_API RzBinDwarfLocList *rz_bin_dwarf_loclists_get(
@@ -303,8 +294,8 @@ RZ_API RzBinDwarfLocList *rz_bin_dwarf_loclists_get(
 	if (loclist) {
 		return loclist;
 	}
-	if (rz_bin_dwarf_loclists_parse_at(self, addr, cu, offset)) {
-		return ht_up_find(self->by_offset, offset, NULL);
+	if (LocList_at(self, addr, cu, offset, &loclist)) {
+		return loclist;
 	}
 	return NULL;
 }
