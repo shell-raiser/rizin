@@ -1300,6 +1300,7 @@ static void RzBinDwarfBlock_log(DwContext *ctx, const RzBinDwarfBlock *block, ut
 	RzBinDWARFDumpOption dump_opt = {
 		.loclist_indent = "",
 		.loclist_sep = ",\t",
+		.expr_sep = " "
 	};
 	char *expr_str = rz_bin_dwarf_expression_to_string(&ctx->unit->hdr.encoding, block, &dump_opt);
 	if (RZ_STR_ISNOTEMPTY(expr_str)) {
