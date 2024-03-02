@@ -8,10 +8,33 @@
 #include <rz_bin_dwarf.h>
 #include <string.h>
 
+#define Ht_FREE_IMPL(V, T, f) \
+	static void Ht##V##_##T##_free(Ht##V##Kv *kv) { \
+		if (!kv) \
+			return; \
+		f(kv->value); \
+	}
+
+typedef struct {
+	char *c_str;
+	ut64 length;
+} String;
+
+static void String_free(String *str) {
+	if (!str) {
+		return;
+	}
+	free(str->c_str);
+	free(str);
+}
+
+Ht_FREE_IMPL(UP, String, String_free);
+
 typedef struct dwarf_context_t {
 	RzAnalysis *analysis;
 	RzBinDwarfCompUnit *unit;
 	RzBinDWARF *dw;
+	HtUP /*<ut64, String *>*/ *str_escaped;
 } DwContext;
 
 static RZ_OWN RzType *type_parse_from_offset_internal(
@@ -548,7 +571,24 @@ static char *at_string_escaped(const RzBinDwarfAttr *attr, DwContext *ctx) {
 	if (!attr) {
 		return NULL;
 	}
-	return rz_bin_dwarf_attr_string_escaped(attr, ctx->dw, ctx->unit->str_offsets_base);
+	bool found;
+	String *str = ht_up_find(ctx->str_escaped, (ut64)attr, &found);
+	if (found) {
+		return rz_mem_dup(str->c_str, str->length);
+	}
+
+	char *c_str = rz_bin_dwarf_attr_string_escaped(attr, ctx->dw, ctx->unit->str_offsets_base);
+	if (!c_str) {
+		return NULL;
+	}
+	str = RZ_NEW0(String);
+	if (!str) {
+		return c_str;
+	}
+	str->c_str = c_str;
+	str->length = strlen(c_str);
+	ht_up_insert(ctx->str_escaped, (ut64)attr, str);
+	return rz_mem_dup(str->c_str, str->length);
 }
 
 static char *anonymous_name(const char *k, ut64 offset) {
@@ -1683,6 +1723,10 @@ static RzBinDwarfDie *die_next(RzBinDwarfDie *die, RzBinDWARF *dw) {
 		: die + 1;
 }
 
+static RzBinDwarfDie *die_end(RzBinDwarfCompUnit *unit) {
+	return unit->dies.a + unit->dies.len * unit->dies.elem_size;
+}
+
 /**
  * \brief Parses type and function information out of DWARF entries
  *        and stores them to analysis->debug_info
@@ -1700,6 +1744,7 @@ RZ_API void rz_analysis_dwarf_preprocess_info(
 	DwContext ctx = {
 		.analysis = analysis,
 		.dw = dw,
+		.str_escaped = ht_up_new(NULL, HtUP_String_free, NULL),
 		.unit = NULL,
 	};
 	RzBinDwarfCompUnit *unit;
@@ -1709,11 +1754,12 @@ RZ_API void rz_analysis_dwarf_preprocess_info(
 		}
 		ctx.unit = unit;
 		for (RzBinDwarfDie *die = rz_vector_head(&unit->dies);
-			die && (ut8 *)die < (ut8 *)unit->dies.a + unit->dies.len * unit->dies.elem_size;
+			die && die < die_end(unit);
 			die = die_next(die, dw)) {
 			die_parse(&ctx, die);
 		}
 	}
+	ht_up_free(ctx.str_escaped);
 }
 
 #define SWAP(T, a, b) \
@@ -2019,11 +2065,6 @@ RZ_API void rz_analysis_dwarf_integrate_functions(RzAnalysis *analysis, RzFlag *
 	rz_return_if_fail(analysis && analysis->debug_info);
 	ht_up_foreach(analysis->debug_info->function_by_addr, dwarf_integrate_function, analysis);
 }
-
-#define Ht_FREE_IMPL(V, T, f) \
-	static void Ht##V##_##T##_free(Ht##V##Kv *kv) { \
-		f(kv->value); \
-	}
 
 Ht_FREE_IMPL(UP, RzType, rz_type_free);
 Ht_FREE_IMPL(UP, RzBaseType, rz_type_base_type_free);
