@@ -1725,7 +1725,8 @@ static RzBinDwarfDie *die_next(RzBinDwarfDie *die, RzBinDWARF *dw) {
 }
 
 static RzBinDwarfDie *die_end(RzBinDwarfCompUnit *unit) {
-	return rz_vector_index_ptr(&unit->dies, rz_vector_len(&unit->dies));
+	RzVector *vec = &unit->dies;
+	return (RzBinDwarfDie *)((char *)vec->a + vec->elem_size * vec->len);
 }
 
 /**
