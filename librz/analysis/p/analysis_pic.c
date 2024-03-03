@@ -5,18 +5,9 @@
 
 #include <rz_types.h>
 #include <rz_analysis.h>
-#include <rz_lib.h>
 
 #include "../../asm/arch/pic/pic_midrange.h"
-
-typedef struct _pic_midrange_op_args_val {
-	ut16 f;
-	ut16 k;
-	ut8 d;
-	ut8 m;
-	ut8 n;
-	ut8 b;
-} PicMidrangeOpArgsVal;
+#include "../arch/pic/pic_il.h"
 
 typedef void (*pic_midrange_inst_handler_t)(RzAnalysis *analysis, RzAnalysisOp *op,
 	ut64 addr,
@@ -26,16 +17,17 @@ typedef struct _pic_midrange_op_analysis_info {
 	PicMidrangeOpcode opcode;
 	PicMidrangeOpArgs args;
 	pic_midrange_inst_handler_t handler;
-} PicMidrangeOpAnalInfo;
+	pic_midrange_il_handler il_handler;
+} PicMidrangeOpAnalysisInfo;
 
 #define INST_HANDLER(OPCODE_NAME) \
 	void _inst__##OPCODE_NAME(RzAnalysis *analysis, RzAnalysisOp *op, \
 		ut64 addr, \
 		PicMidrangeOpArgsVal *args)
 #define INST_DECL(NAME, ARGS) \
-	{ \
+	[PIC_MIDRANGE_OPCODE_##NAME] = { \
 		PIC_MIDRANGE_OPCODE_##NAME, PIC_MIDRANGE_OP_ARGS_##ARGS, \
-			_inst__##NAME \
+		_inst__##NAME, IL_LIFTER(NAME) \
 	}
 
 #define e(frag)       rz_strbuf_append(&op->esil, frag)
@@ -554,8 +546,7 @@ INST_HANDLER(MOVWI_2) {
 	e("=[1],");
 }
 
-#define PIC_MIDRANGE_OPINFO_LEN 52
-static const PicMidrangeOpAnalInfo pic_midrange_op_analysis_info[PIC_MIDRANGE_OPINFO_LEN] = {
+static const PicMidrangeOpAnalysisInfo pic_midrange_op_analysis_info[] = {
 	INST_DECL(NOP, NONE), INST_DECL(RETURN, NONE),
 	INST_DECL(RETFIE, NONE), INST_DECL(OPTION, NONE),
 	INST_DECL(SLEEP, NONE), INST_DECL(CLRWDT, NONE),
@@ -633,18 +624,15 @@ static void analysis_pic_midrange_extract_args(ut16 instr,
 	}
 }
 
-static RzIODesc *mem_sram = 0;
-static RzIODesc *mem_stack = 0;
-
 static RzIODesc *cpu_memory_map(RzIOBind *iob, RzIODesc *desc, ut32 addr,
 	ut32 size) {
-	char *mstr = rz_str_newf("malloc://%d", size);
+	char mstr[16];
+	rz_strf(mstr, "malloc://%d", size);
 	if (desc && iob->fd_get_name(iob->io, desc->fd)) {
 		iob->fd_remap(iob->io, desc->fd, addr);
 	} else {
 		desc = iob->open_at(iob->io, mstr, RZ_PERM_RW, 0, addr, NULL);
 	}
-	free(mstr);
 	return desc;
 }
 
@@ -660,6 +648,8 @@ static bool pic_midrange_reg_write(RzReg *reg, const char *regname, ut32 num) {
 }
 
 typedef struct {
+	RzIODesc *mem_sram;
+	RzIODesc *mem_stack;
 	bool init_done;
 } PicContext;
 
@@ -673,18 +663,18 @@ static bool pic_init(void **user) {
 	return true;
 }
 
-static void analysis_pic_midrange_malloc(RzAnalysis *analysis, bool force) {
+static void analysis_pic_midrange_setup(RzAnalysis *analysis, bool force) {
 	PicContext *ctx = (PicContext *)analysis->plugin_data;
 
 	if (!ctx->init_done || force) {
 		// Allocate memory as needed.
 		// We assume that code is already allocated with firmware
 		// image
-		mem_sram =
-			cpu_memory_map(&analysis->iob, mem_sram,
+		ctx->mem_sram =
+			cpu_memory_map(&analysis->iob, ctx->mem_sram,
 				PIC_MIDRANGE_ESIL_SRAM_START, 0x1000);
-		mem_stack =
-			cpu_memory_map(&analysis->iob, mem_stack,
+		ctx->mem_stack =
+			cpu_memory_map(&analysis->iob, ctx->mem_sram,
 				PIC_MIDRANGE_ESIL_CSTACK_TOP, 0x20);
 
 		pic_midrange_reg_write(analysis->reg, "_sram",
@@ -698,20 +688,15 @@ static void analysis_pic_midrange_malloc(RzAnalysis *analysis, bool force) {
 }
 
 static int analysis_pic_midrange_op(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr,
-	const ut8 *buf, int len) {
-
-	ut16 instr;
-	int i;
-
-	analysis_pic_midrange_malloc(analysis, false);
+	const ut8 *buf, int len, RzAnalysisOpMask mask) {
 
 	if (!buf || len < 2) {
 		op->type = RZ_ANALYSIS_OP_TYPE_ILL;
 		return op->size;
 	}
 
-	instr = rz_read_le16(buf);
-
+	analysis_pic_midrange_setup(analysis, false);
+	ut16 instr = rz_read_le16(buf);
 	// Default op params
 	op->size = 2;
 	op->cycles = 1;
@@ -720,14 +705,26 @@ static int analysis_pic_midrange_op(RzAnalysis *analysis, RzAnalysisOp *op, ut64
 	PicMidrangeOpcode opcode = pic_midrange_get_opcode(instr);
 	PicMidrangeOpArgsVal args_val;
 
-	for (i = 0; i < PIC_MIDRANGE_OPINFO_LEN; i++) {
-		if (pic_midrange_op_analysis_info[i].opcode == opcode) {
-			analysis_pic_midrange_extract_args(
-				instr, pic_midrange_op_analysis_info[i].args,
-				&args_val);
-			pic_midrange_op_analysis_info[i].handler(analysis, op, addr,
-				&args_val);
-			break;
+	if (opcode < RZ_ARRAY_SIZE(pic_midrange_op_analysis_info)) {
+		const PicMidrangeOpAnalysisInfo *info = pic_midrange_op_analysis_info + opcode;
+		if (!info) {
+			return -1;
+		}
+		analysis_pic_midrange_extract_args(
+			instr, info->args,
+			&args_val);
+		if (mask & RZ_ANALYSIS_OP_MASK_ESIL) {
+			info->handler(analysis, op, addr, &args_val);
+		}
+		if (mask & RZ_ANALYSIS_OP_MASK_IL) {
+			PicMidrangeILContext il_ctx = {
+				.analysis = analysis,
+				.op = op,
+				.args = args_val,
+				.addr = addr,
+			};
+			rz_pic_midrange_cpu_state_setup(&il_ctx.cpu, PIC16F886);
+			info->il_handler(&il_ctx, opcode);
 		}
 	}
 
@@ -742,7 +739,9 @@ static void pic18_cond_branch(RzAnalysisOp *op, ut64 addr, const ut8 *buf, char 
 	rz_strbuf_setf(&op->esil, "%s,?,{,0x%" PFMT64x ",pc,=,}", flag, op->jump);
 }
 
-static int analysis_pic_pic18_op(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, const ut8 *buf, int len) {
+static int analysis_pic_pic18_op(
+	RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr,
+	const ut8 *buf, int len, RzAnalysisOpMask mask) {
 	// TODO code should be refactored and broken into smaller chunks!!
 	// TODO complete the esil emitter
 	if (len < 2) {
@@ -1170,16 +1169,18 @@ static char *analysis_pic_pic18_get_reg_profile(RzAnalysis *esil) {
 	return strdup(p);
 }
 
-static int analysis_pic_op(RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr, const ut8 *buf, int len, RzAnalysisOpMask mask) {
+static int analysis_pic_op(
+	RzAnalysis *analysis, RzAnalysisOp *op, ut64 addr,
+	const ut8 *buf, int len, RzAnalysisOpMask mask) {
 	if (analysis->cpu && strcasecmp(analysis->cpu, "baseline") == 0) {
 		// TODO: implement
 		return -1;
 	}
 	if (analysis->cpu && strcasecmp(analysis->cpu, "midrange") == 0) {
-		return analysis_pic_midrange_op(analysis, op, addr, buf, len);
+		return analysis_pic_midrange_op(analysis, op, addr, buf, len, mask);
 	}
 	if (analysis->cpu && strcasecmp(analysis->cpu, "pic18") == 0) {
-		return analysis_pic_pic18_op(analysis, op, addr, buf, len);
+		return analysis_pic_pic18_op(analysis, op, addr, buf, len, mask);
 	}
 	return -1;
 }
