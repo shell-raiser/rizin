@@ -97,7 +97,7 @@ typedef enum pic_midrange_reg_type_t {
     ANSELH,
     EECON1,
     EECON2,
-    RESERVED,
+    _RESERVED,
     FREG, /* normal indexed file register */
     UNIMPLEMENTED, /* unimplemented registers are read as 0 */
     INVALID /* can be used when a function fails and want to return an invalid value */
@@ -186,7 +186,7 @@ const char* pic_midrange_regnames[] = {
     [ANSELH]        = "anselh",
     [EECON1]        = "eecon1",
     [EECON2]        = "eecon2",
-    [RESERVED]      = "reserved",
+    [_RESERVED]      = "reserved",
     [FREG]          = "freg",
     [UNIMPLEMENTED] = "unimplemented",
 };

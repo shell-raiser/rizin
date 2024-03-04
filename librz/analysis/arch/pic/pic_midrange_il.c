@@ -22,24 +22,18 @@
 #define BANK_COMMON_MAP_LOW  cpu_state->selected_bank *BANK_SIZE + 0X70
 #define BANK_COMMON_MAP_HIGH cpu_state->selected_bank *BANK_SIZE + 0X7F
 
-// fields inside status register
-const char *pic_midrange_status_flags[] = {
-	"IRP", "RP1", "RP0", "TO", "PD", "Z", "DC", "C"
-};
-
-#define STATUS(x) pic_midrange_status_flags[x]
-#define K         (ctx->args.k)
-#define D         (ctx->args.d)
-#define F         (ctx->args.f)
-#define B         (ctx->args.b)
-#define PC        (ctx->addr)
-#define RW        "w"
-#define RF        pic_midrange_regname(F)
-#define RWF       (D ? pic_midrange_regname(F) : "w")
-#define VRF       (VARG(pic_midrange_regname(F)))
-#define VRW       (VARG(RW))
-#define VRWF      (VARG(RWF))
-#define VPC       (U16(PC))
+#define K    (ctx->args.k)
+#define D    (ctx->args.d)
+#define F    (ctx->args.f)
+#define B    (ctx->args.b)
+#define PC   (ctx->addr)
+#define RW   "w"
+#define RF   pic_midrange_regname(F)
+#define RWF  (D ? pic_midrange_regname(F) : "w")
+#define VRF  (VARG(pic_midrange_regname(F)))
+#define VRW  (VARG(RW))
+#define VRWF (VARG(RWF))
+#define VPC  (U16(PC))
 
 #define INS_LEN 2
 
@@ -81,23 +75,23 @@ static RzILOpPure *SLICE(RzILOpPure *x, ut8 l, ut8 r) {
  * */
 RzILOpEffect *pic_midrange_il_set_arithmetic_flags(
 	RZ_BORROW RzILOpPure *x, RZ_BORROW RzILOpPure *y, RZ_BORROW RzILOpPure *res, bool add) {
-	//	// get carry flag
-	//	RzILOpBool *cf = NULL;
-	//	RzILOpBool *dcf = NULL;
-	//	if (add) {
-	//		cf = CHECK_CARRY(x, y, res);
-	//		dcf = CHECK_DIGIT_CARRY(x, y, res);
-	//	} else { // sub
-	//		cf = CHECK_BORROW(x, y, res);
-	//		dcf = CHECK_DIGIT_BORROW(x, y, res);
-	//	}
-	//
-	//	// get zero flag
-	//	RzILOpBool *zf = IS_ZERO(res);
-	//
-	//	return SEQ3(SETG(STATUS(C), cf),
-	//		SETG(STATUS(DC), dcf),
-	//		SETG(STATUS(Z), zf));
+	// get carry flag
+	RzILOpBool *cf = NULL;
+	RzILOpBool *dcf = NULL;
+	if (add) {
+		cf = CHECK_CARRY(x, y, res);
+		dcf = CHECK_DIGIT_CARRY(x, y, res);
+	} else { // sub
+		cf = CHECK_BORROW(x, y, res);
+		dcf = CHECK_DIGIT_BORROW(x, y, res);
+	}
+
+	// get zero flag
+	RzILOpBool *zf = IS_ZERO(res);
+
+	return SEQ3(SETG("c", cf),
+		SETG("dc", dcf),
+		SETG("z", zf));
 }
 
 #define SET_STATUS_ADD(x, y, r) pic_midrange_il_set_arithmetic_flags(x, y, r, true)
@@ -111,10 +105,6 @@ RzILOpEffect *pic_midrange_il_set_arithmetic_flags(
  * */
 IL_LIFTER_IMPL(NOP) {
 	return NOP();
-}
-
-static RzILOpEffect *SET(const char *flag, RzILOpBool *pPure) {
-	return SETG(flag, pPure);
 }
 
 /**
@@ -329,13 +319,13 @@ IL_LIFTER_IMPL(SUBLW) {
 	return SEQ3(
 		SETL("_w", VRW),
 		SETG(RW, SUB(U8(K), VARL("_w"))),
-		SET_STATUS_SUB(VARL("_w"), U8(K), RW));
+		SET_STATUS_SUB(VARL("_w"), U8(K), VRW));
 }
 
 IL_LIFTER_IMPL(SUBWF) {
 	return SEQ3(
-		SETL("_res", SUB(RF, RW)),
-		SET_STATUS_SUB(RF, RW, VARL("_res")),
+		SETL("_res", SUB(VRF, VRW)),
+		SET_STATUS_SUB(VRF, VRW, VARL("_res")),
 		SETG(RWF, VARL("_res")));
 }
 
@@ -372,22 +362,54 @@ IL_LIFTER_IMPL(XORWF) {
 		SETG("z", IS_ZERO(VRWF)));
 }
 
-IL_LIFTER_IMPL(RESET) {}
-IL_LIFTER_IMPL(CALLW) {}
-IL_LIFTER_IMPL(BRW) {}
-IL_LIFTER_IMPL(MOVIW_1) {}
-IL_LIFTER_IMPL(MOVWI_1) {}
-IL_LIFTER_IMPL(MOVLB) {}
-IL_LIFTER_IMPL(LSLF) {}
-IL_LIFTER_IMPL(LSRF) {}
-IL_LIFTER_IMPL(ASRF) {}
-IL_LIFTER_IMPL(SUBWFB) {}
-IL_LIFTER_IMPL(ADDWFC) {}
-IL_LIFTER_IMPL(ADDFSR) {}
-IL_LIFTER_IMPL(MOVLP) {}
-IL_LIFTER_IMPL(BRA) {}
-IL_LIFTER_IMPL(MOVIW_2) {}
-IL_LIFTER_IMPL(MOVWI_2) {}
+IL_LIFTER_IMPL(RESET) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(CALLW) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(BRW) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVIW_1) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVWI_1) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVLB) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(LSLF) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(LSRF) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(ASRF) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(SUBWFB) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(ADDWFC) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(ADDFSR) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVLP) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(BRA) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVIW_2) {
+	NOT_IMPLEMENTED;
+}
+IL_LIFTER_IMPL(MOVWI_2) {
+	NOT_IMPLEMENTED;
+}
 
 /**
  * Create new Mid-Range device CPU state.
@@ -417,4 +439,5 @@ RZ_IPI bool rz_pic_midrange_cpu_state_setup(
  * \return valid ptr to RzAnalysisILConfig on success, NULL otherwise.
  * */
 RZ_IPI RzAnalysisILConfig *rz_midrange_il_vm_config(RZ_NONNULL RzAnalysis *analysis, PicMidrangeDeviceType device_type) {
+	return NULL;
 }
