@@ -26,6 +26,7 @@
 #define D    (ctx->args.d)
 #define F    (ctx->args.f)
 #define B    (ctx->args.b)
+#define N    (ctx->args.n)
 #define PC   (ctx->addr)
 #define RW   "w"
 #define RF   pic_midrange_regname(F)
@@ -49,6 +50,20 @@ PicMidrangeRegType *pic_midrange_device_reg_map[] = {
 static RzILOpPure *SLICE(RzILOpPure *x, ut8 l, ut8 r) {
 	return LOGAND(SHIFTR0(x, U16(l)), U16(~(-1 << (r - l + 1))));
 }
+
+#define SEXT(B, x, b) ((st##B)(x << (B - b)) >> (B - b))
+
+static const char *RFSR(ut8 n) {
+	static const char *FSR_names[] = {
+		"FSR0", "FSR1"
+	};
+	if (n >= RZ_ARRAY_SIZE(FSR_names)) {
+		return NULL;
+	}
+	return FSR_names[n];
+}
+
+#define VRFSR(n) VARG(RFSR(n))
 
 #define BITN(x, n) IS_ZERO(LOGAND(SHIFTR0(x, U32(n)), U32(1)))
 // overflow is not used in status register but just keeping this for future "maybe" use
@@ -362,53 +377,108 @@ IL_LIFTER_IMPL(XORWF) {
 		SETG("z", IS_ZERO(VRWF)));
 }
 
+// 14-bit enhanced PIC additional instructions
+
+RzILOpEffect *reset() {
+	return NOP();
+}
+
+RzILOpEffect *setZ(RzILOpPure *x) {
+	return SETG("z", IS_ZERO(x));
+}
+
 IL_LIFTER_IMPL(RESET) {
-	NOT_IMPLEMENTED;
+	return SEQ2(
+		reset(),
+		JMP(U16(0)));
 }
 IL_LIFTER_IMPL(CALLW) {
-	NOT_IMPLEMENTED;
+	return SEQ2(
+		SETG("tos", U16(PC + INS_LEN)),
+		JMP(LOGOR(U16(K), UNSIGNED(16, VRW))));
 }
 IL_LIFTER_IMPL(BRW) {
-	NOT_IMPLEMENTED;
+	return JMP(ADD(UNSIGNED(16, VRW), SHIFTR0(U16(PC + INS_LEN), U16(1))));
 }
 IL_LIFTER_IMPL(MOVIW_1) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(MOVWI_1) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(MOVLB) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(LSLF) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(LSRF) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(ASRF) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(SUBWFB) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(ADDWFC) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(ADDFSR) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(MOVLP) {
-	NOT_IMPLEMENTED;
-}
-IL_LIFTER_IMPL(BRA) {
-	NOT_IMPLEMENTED;
+	switch (ctx->d & 0b11) {
+	case 0x0: return SEQ3(
+		SETG(RFSR(N), ADD(VRFSR(N), U8(1))),
+		SETG(RW, VRFSR(N)),
+		setZ(VRW));
+	case 0x1: return SEQ3(
+		SETG(RFSR(N), SUB(VRFSR(N), U8(1))),
+		SETG(RW, VRFSR(N)),
+		setZ(VRW));
+	case 0x2: return SEQ3(
+		SETG(RW, VRFSR(N)),
+		SETG(RFSR(N), ADD(VRFSR(N), U8(1))),
+		setZ(VRW));
+	case 0x3: return SEQ3(
+		SETG(RW, VRFSR(N)),
+		SETG(RFSR(N), SUB(VRFSR(N), U8(1))),
+		setZ(VRW));
+	default: break;
+	}
+	return NULL;
 }
 IL_LIFTER_IMPL(MOVIW_2) {
-	NOT_IMPLEMENTED;
+	return SEQ2(
+		SETG(RW, LOAD(ADD(VRFSR(N), S8(SEXT(8, K, 6))))),
+		setZ(VRW));
+}
+
+IL_LIFTER_IMPL(MOVWI_1) {
+	return SETG(RFSR(N), VRW);
 }
 IL_LIFTER_IMPL(MOVWI_2) {
-	NOT_IMPLEMENTED;
+	return STORE(ADD(VRFSR(N), S8(SEXT(8, K, 6))), VRW);
+}
+
+IL_LIFTER_IMPL(MOVLB) {
+	// imm5?
+	return SETG("bsr", U8(K));
+}
+IL_LIFTER_IMPL(MOVLP) {
+	// imm7?
+	return SETG("pclath", U8(K));
+}
+
+IL_LIFTER_IMPL(LSLF) {
+	return SEQ3(
+		SETG("c", MSB(VRF)),
+		SETG(RWF, SHIFTL0(VRF, U8(1))),
+		setZ(VRWF));
+}
+IL_LIFTER_IMPL(LSRF) {
+	return SEQ3(
+		SETG("c", LSB(VRF)),
+		SETG(RWF, SHIFTR0(VRF, U8(1))),
+		setZ(VRWF));
+}
+IL_LIFTER_IMPL(ASRF) {
+	return SEQ3(
+		SETG("c", LSB(VRF)),
+		SETG(RWF, SHIFTRA(VRF, U8(1))),
+		setZ(VRWF));
+}
+IL_LIFTER_IMPL(SUBWFB) {
+	return SEQ3(
+		SETG("_res", ADD(SUB(VRF, VRW), VARG("c"))),
+		SET_STATUS_SUB(VRF, VRW, VARL("_res")),
+		SETG(RWF, VARL("_res")));
+}
+IL_LIFTER_IMPL(ADDWFC) {
+	return SEQ3(
+		SETG("_res", ADD(ADD(VRF, VRW), VARG("c"))),
+		SET_STATUS_ADD(VRF, VRW, VARL("_res")),
+		SETG(RWF, VARL("_res")));
+}
+IL_LIFTER_IMPL(ADDFSR) {
+	return SETG(RFSR(N), ADD(VRFSR(N), S8(SEXT(8, K, 6))));
+}
+IL_LIFTER_IMPL(BRA) {
+	return JMP(U16(PC + SEXT(16, K, 9)));
 }
 
 /**

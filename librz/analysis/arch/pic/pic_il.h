@@ -54,6 +54,7 @@ typedef struct pic_midrange_il_context_t {
 	PicMidrangeCPUState cpu;
 	PicMidrangeOpArgsVal args;
 	ut64 addr;
+	ut16 d;
 } PicMidrangeILContext;
 
 typedef RzILOpEffect *(*pic_midrange_il_handler)(PicMidrangeILContext *, ut16);
