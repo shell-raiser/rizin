@@ -546,7 +546,7 @@ INST_HANDLER(MOVWI_2) {
 	e("=[1],");
 }
 
-INST_HANDLER(CLRF){}
+INST_HANDLER(CLRF) {}
 
 static const PicMidrangeOpAnalysisInfo pic_midrange_op_analysis_info[] = {
 	INST_DECL(NOP, NONE),
